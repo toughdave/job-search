@@ -74,6 +74,8 @@ Click the permission label below the message box and select **Full access**.
 
 Full access allows internet access and file changes, including files outside the selected project. This is the Codex setting used in this walkthrough.
 
+The skill can also work with narrower permissions and your approvals. It normally keeps its private `records` folder inside your chosen project, so access to the whole computer is not a technical requirement.
+
 #### e. Claude Code: choose Auto
 
 Click the mode label below the message box and select **Auto**.
@@ -190,6 +192,8 @@ To change it, say **“Pause my scheduled search”** or **“Move my daily sear
 ## If something stops you
 
 Tell the AI what happened. For missing records, provide the private location it gave you and say **“Resume my existing search here; do not start over.”** [More help](docs/setup.md#if-something-stops-you).
+
+If you renamed or moved your project, say **“I moved this job-search project. Reconnect my existing records here.”** The AI confirms the new location, preserves your answers and checks any saved routine before resuming it.
 
 <details>
 <summary>Update or install from a terminal</summary>

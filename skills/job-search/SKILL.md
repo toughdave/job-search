@@ -3,8 +3,8 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.4.0"
-  compatibility: Local AI agent with file access; Python 3.10+ for state management. Web, browser, document export and scheduling depend on available tools.
+  version: "1.5.0"
+  compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
 # Job Search
@@ -15,7 +15,7 @@ You operate the workflow; the person supplies their resume, answers, feedback an
 
 Read [workspace operations](references/workspace.md) before any workspace write. Resolve resources relative to **this installed skill**, not the current directory. Use `scripts/workspace.py` for state and file writes; do not replace it with ad hoc writes. It guards a NEW private workspace, uses revisions and backups, and refuses unknown schemas. Never modify another candidate's pipeline, global memory, global skill configuration, connections, or schedules as part of onboarding. Private files must stay outside the installed skill and public source checkout.
 
-Find only the workspace explicitly supplied or recorded for this conversation/project; do not crawl home directories or infer identity from the machine account. If no workspace exists, propose a new empty sibling folder and initialize it within the available write permission. Explain its friendly name once. A scope or location decision can be the first short question if necessary. If a folder already contains files, choose a new one; never adopt it automatically. Preserve the resume as a source copy without moving or altering the original.
+Find only the workspace explicitly supplied or recorded in this selected project's `.job-search-project.json`; do not crawl home directories or infer identity from the machine account. Read `workspace_relative` under the project when present, otherwise `workspace_path`, and verify the workspace ID before use. If no workspace exists, prefer a NEW `records` subfolder within the dedicated local project when permitted, or propose a new private sibling. Explain its friendly name once. A scope or location decision can be the first short question if necessary. If a folder already contains files, choose a new one; never adopt it automatically. Preserve the resume as a source copy without moving or altering the original.
 
 On every return, read current state from disk and any pending work before deciding the next action. A newer explicit correction outranks earlier candidate data. Use a workspace-local status note for handoff; the state file is authoritative. Do not rely on conversational memory or regenerate the candidate profile from an old draft.
 
@@ -24,6 +24,8 @@ On every return, read current state from disk and any pending work before decidi
 Read [project onboarding](references/onboarding.md) and [interview and evidence](references/interview.md). One-question pacing, waiting for answers, evidence gathering and file management are defaults even when invoked with only “Use job-search.” Bind the private interview to the actual selected project, verify resume intake, and run the evidence-derived checklist on every return. Never infer an attached/read resume from installation or a candidate saying yes. If no resume exists, record that answer and help build one from supported experience.
 
 Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Say “saved” only after a successful write and readback. In a read-only session or response simulation, do not claim anything was saved or activated. Missing checkmarks are not proof of missing answers.
+
+Use `onboarding.py ask` and `save-answer` for the question/answer transaction; these update the next action and preserve exact text. Read [state schema and examples](references/state-schema.md) when mapping facts or adding employer entries. The first target-work question uses `target-work` / `occupation`. Location and remote/hybrid preference are separate decisions and separate turns. The helper prevents a second pending question, but you must keep each question itself to one decision.
 
 Cover name/contact details, location and relocation preferences, education, certifications/licences and relevant skills or CV additions using the profile guidance in onboarding. Reuse supplied details, confirm credential inventories, and preserve completed/in-progress/expired distinctions. Full street addresses and irrelevant personal data are not routine resume requirements. Save none, declined and deferred answers so they are not repeatedly requested.
 

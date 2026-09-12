@@ -2,13 +2,18 @@
 """Project-scoped interview coverage derived from saved evidence, never checkboxes."""
 import argparse
 import json
-from pathlib import Path
+import uuid
+from pathlib import Path,PureWindowsPath,PurePosixPath
 import sys
 sys.dont_write_bytecode = True
 import workspace as ws
 
+def absolute_path(value):
+    return isinstance(value,str) and (PureWindowsPath(value).is_absolute() or PurePosixPath(value).is_absolute())
+
 def baseline_topics():
     return [
+        {'id':'target-work','track_id':None,'kind':'profile','title':'Work the candidate wants to find','required':True,'dimensions':['occupation']},
         {'id':'region','track_id':None,'kind':'profile','title':'Search location and constraints','required':True,'dimensions':['location','constraints']},
         {'id':'background','track_id':None,'kind':'profile','title':'Work, projects and education','required':True,'dimensions':['roles','education']},
         {'id':'linkedin','track_id':None,'kind':'linkedin','title':'Optional LinkedIn review choice','required':True,'dimensions':['decision']},
@@ -26,9 +31,14 @@ def validate(state, root):
     if ob is None: return  # Read older workspaces without destructive migration.
     ws.require(isinstance(ob,dict) and ob.get('version')==1,'Unsupported onboarding format.')
     ws.require(ob.get('workspace_id')==state['workspace_id'],'Onboarding belongs to a different workspace.')
-    project=ws.checked_root(ob.get('project_root',''))
-    ws.require(str(project)==ob.get('project_root') and project.is_dir(),'Onboarding project path is missing or noncanonical.')
+    project=ob.get('project_root')
+    ws.require(absolute_path(project),'Onboarding project must be an absolute path.')
     sources=ws.indexed(state['sources'],'sources');facts=ws.indexed(state['profile']['facts'],'facts')
+    for binding in ob.get('bindings',[]):
+        ws.require(isinstance(binding,dict) and all(absolute_path(binding.get(k)) for k in ('from','to')),'Binding history paths required.')
+        ws.stamp(binding.get('at'),'binding timestamp')
+        ws.refs(binding.get('source_ids'),sources,'Binding decision')
+        ws.require(any(sources[x]['kind'] in ('candidate_answer','candidate_report') for x in binding['source_ids']),'Rebinding needs a saved candidate decision.')
     answers=ws.indexed(state['interviews'],'interviews')
     tracks=ws.indexed(ob.get('tracks'),'tracks');topics=ws.indexed(ob.get('topics'),'topics')
     for expected in baseline_topics():
@@ -83,32 +93,116 @@ def validate(state, root):
     import experience
     experience.validate(state)
 
-def guard_history(old,new):
+def guard_history(old,new,allow_rebind=False):
     before=old.get('onboarding');after=new.get('onboarding')
     if before is None:return
     ws.require(after is not None,'Saved onboarding cannot be deleted.')
-    for key in ('version','workspace_id','project_root'):
+    for key in ('version','workspace_id'):
         ws.require(after.get(key)==before[key],'Cannot silently rebind the interview to another project.')
+    previous=before.get('bindings',[]);current=after.get('bindings',[])
+    ws.require(current[:len(previous)]==previous,'Binding history is append-only.')
+    if after['project_root']!=before['project_root'] or current!=previous:
+        ws.require(allow_rebind and len(current)==len(previous)+1,'Use the explicit rebind command for a project move.')
+        ws.require(current[-1]['from']==before['project_root'] and current[-1]['to']==after['project_root'],'Binding history must describe this move.')
     for key in ('tracks','topics','questions','evidence','dispositions','experiences','history_reviews'):
         ws.require(after.get(key,[])[:len(before.get(key,[]))]==before.get(key,[]),f'Onboarding {key} order is append-only.')
         previous=ws.indexed(before.get(key,[]),key);current=ws.indexed(after.get(key,[]),key)
         ws.require(all(k in current and current[k]==v for k,v in previous.items()),f'Onboarding {key} is append-only.')
 
+POINTER='.job-search-project.json'
+
+def pointer_path(project,state):
+    ws.require(not (project/'SKILL.md').exists() and not (project/'skills/job-search/SKILL.md').exists(),'An installed skill/public skill checkout cannot be the candidate project.')
+    path=ws.inside(project,POINTER)
+    if path.exists():
+        existing=json.loads(path.read_text(encoding='utf-8'))
+        ws.require(existing.get('format')=='job-search-project' and existing.get('workspace_id')==state['workspace_id'],'Project already points to a different workspace; no pointer overwritten.')
+    return path
+
+def write_pointer(root,project,state):
+    path=pointer_path(project,state)
+    relative=root.relative_to(project).as_posix() if root.is_relative_to(project) else None
+    ws.atomic_json(path,{'format':'job-search-project','workspace_id':state['workspace_id'],
+        'workspace_path':str(root),'workspace_relative':relative,
+        'instruction':'Read this workspace from disk; verify its workspace ID. If the project moved, ask for the new binding before continuing.'})
+
 def bind(value,project_value):
     root=ws.checked_root(value);project=ws.checked_root(project_value)
     ws.require(project.is_dir(),'Choose an existing project folder.')
-    ws.require(not (project/'SKILL.md').exists(),'An installed skill cannot be the candidate project.')
     state=ws.load(root)
+    pointer_path(project,state)
     if state.get('onboarding'):
-        check_project(state,project);return state
+        check_project(state,project);write_pointer(root,project,state);return state
     state['onboarding']={'version':1,'workspace_id':state['workspace_id'],'project_root':str(project),
         'resume':{'status':'unchecked','source_ids':[]},'tracks':[],'active_track':None,
         'topics':baseline_topics(),'questions':[],'evidence':[],'dispositions':[],'experiences':[],'history_reviews':[]}
-    return ws.commit(root,state,state['revision'],'Bound private interview to the selected project')
+    state=ws.commit(root,state,state['revision'],'Bound private interview to the selected project')
+    write_pointer(root,project,state)
+    return state
+
+def rebind(value,project_value,source_id,expected,workspace_id):
+    root=ws.checked_root(value);project=ws.checked_root(project_value);state=ws.load(root)
+    ws.require(state['workspace_id']==workspace_id,'Confirm the original workspace ID before rebinding.')
+    ws.require(state['revision']==expected,'Revision conflict: reread before rebinding.')
+    ws.require(project.is_dir() and state.get('onboarding'),'Existing project and bound workspace required.')
+    pointer_path(project,state)
+    sources=ws.indexed(state['sources'],'sources')
+    ws.require(source_id in sources and sources[source_id]['kind'] in ('candidate_answer','candidate_report'),'Save the candidate relocation decision before rebinding.')
+    ob=state['onboarding'];previous=ob['project_root']
+    ob.setdefault('bindings',[]).append({'from':previous,'to':str(project),'at':ws.now(),'source_ids':[source_id]})
+    ob['project_root']=str(project)
+    # A timer may still carry the old project or workspace path. Require native readback again.
+    routine=state['integrations'].get('job_search_routine')
+    if routine and routine.get('status')=='active':routine['status']='paused'
+    state=ws.commit(root,state,expected,'Candidate-directed project relocation; recheck schedule paths',allow_rebind=True)
+    write_pointer(root,project,state)
+    return state
 
 def check_project(state,project):
     ws.require(state.get('onboarding') is not None,'Bind this workspace to the selected project first.')
-    ws.require(str(ws.checked_root(project))==state['onboarding']['project_root'],'Different project: do not reuse this interview or its private evidence automatically.')
+    actual=ws.checked_root(project);saved=Path(state['onboarding']['project_root'])
+    ws.require(actual.is_dir() and saved.is_dir(),'Project moved or is unavailable. Read records with workspace.py show; confirm the new location and use onboarding.py rebind.')
+    ws.require(ws.same_path(actual,saved),'Different project: do not reuse this interview or its private evidence automatically. A confirmed move uses onboarding.py rebind.')
+
+def ask(value,project,topic_id,dimension,question,expected):
+    root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
+    ws.require(state['revision']==expected,'Revision conflict: reread before asking.')
+    review=plan(root,project)
+    pending=[q for row in review['topics'] for q in row['pending_questions']]
+    if pending:
+        ws.require(len(pending)==1 and pending[0]['topic_id']==topic_id and pending[0]['dimension']==dimension and pending[0]['question']==question,'Resume the existing pending question before asking another.')
+        if state['session']['next_action']!='Await answer: '+question:
+            state['session']['next_action']='Await answer: '+question
+            state=ws.commit(root,state,expected,'Restored saved pending question as the next action')
+        return {'question':pending[0],'revision':state['revision']}
+    ws.require(not any(row['unmapped_answer_ids'] for row in review['topics'] if row['status'] not in ('declined','deferred','not_applicable','no_example')),'Reconcile saved unmapped answers before asking another question.')
+    for topic in review['missing_baseline_topics']:state['onboarding']['topics'].append(topic)
+    row=next((r for r in review['topics'] if r['id']==topic_id),None)
+    ws.require(row is None or (row['status'] not in ('declined','deferred','not_applicable','no_example') and dimension in row['missing_dimensions']),'Topic is covered or has a saved disposition; reconcile it first.')
+    q={'id':'q-'+uuid.uuid4().hex,'topic_id':topic_id,'dimension':dimension,'question':question,'asked_at':ws.now()}
+    state['onboarding']['questions'].append(q);state['session']['next_action']='Await answer: '+question
+    saved=ws.commit(root,state,expected,'Saved the next interview question')
+    return {'question':q,'revision':saved['revision']}
+
+def save_answer(value,project,question_id,answer,interpretation,expected):
+    root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
+    ws.require(state['revision']==expected,'Revision conflict: reread before saving the answer.')
+    q=next((q for q in state['onboarding']['questions'] if q['id']==question_id),None)
+    ws.require(q is not None,'Unknown pending question.')
+    existing=next((a for a in state['interviews'] if a.get('onboarding_question_id')==question_id),None)
+    if existing:
+        ws.require(existing['answer']==answer and existing['interpretation']==interpretation,'Answer already saved; append a sourced correction rather than overwrite it.')
+        return {'answer':existing,'revision':state['revision']}
+    ws.require(answer.strip() and interpretation.strip(),'Exact answer and a separate interpretation are required.')
+    sid='answer-'+uuid.uuid4().hex;relative='sources/'+sid+'.json'
+    path=ws.inside(root,relative)
+    with path.open('x',encoding='utf-8') as f:json.dump({'question':q['question'],'answer':answer},f,ensure_ascii=False,indent=2)
+    source={'id':sid,'kind':'candidate_answer','recorded_at':ws.now(),'file':relative,'sha256':ws.digest(path)}
+    a={'id':sid,'onboarding_question_id':q['id'],'question':q['question'],'answer':answer,'interpretation':interpretation,'recorded_at':ws.now(),'source_ids':[sid]}
+    state['sources'].append(source);state['interviews'].append(a)
+    state['session']['next_action']='Reconcile saved answer '+sid+' into supported facts and topic evidence before the next question.'
+    saved=ws.commit(root,state,expected,'Saved exact candidate answer; coverage awaits reconciliation')
+    return {'answer':a,'revision':saved['revision']}
 
 def plan(value,project):
     state=ws.load(value);check_project(state,project);ob=state['onboarding']
@@ -155,10 +249,23 @@ def plan(value,project):
         'instruction':'Review all existing facts and exact answers for each missing dimension before asking. Map supported answers into evidence; do not repeat an answered question. Checked is derived, never an input.'}
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('command',choices=('bind','plan'))
-    parser.add_argument('--workspace',required=True);parser.add_argument('--project',required=True);args=parser.parse_args()
+    ws.configure_output()
+    parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
+    for command in ('bind','plan','rebind','ask','save-answer'):
+        p=sub.add_parser(command);p.add_argument('--workspace',required=True);p.add_argument('--project',required=True)
+        if command in ('rebind','ask','save-answer'):p.add_argument('--expected-revision',type=int,required=True)
+        if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
+        if command=='ask':
+            p.add_argument('--topic',required=True);p.add_argument('--dimension',required=True);p.add_argument('--question',required=True)
+        if command=='save-answer':
+            p.add_argument('--question-id',required=True);p.add_argument('--answer-file',required=True,help='UTF-8 text containing the exact candidate answer');p.add_argument('--interpretation',required=True)
+    args=parser.parse_args()
     try:
-        result=bind(args.workspace,args.project) if args.command=='bind' else plan(args.workspace,args.project)
+        if args.command=='bind':result=bind(args.workspace,args.project)
+        elif args.command=='plan':result=plan(args.workspace,args.project)
+        elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
+        elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision)
+        else:result=save_answer(args.workspace,args.project,args.question_id,Path(args.answer_file).read_text(encoding='utf-8'),args.interpretation,args.expected_revision)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0
     except (ValueError,OSError,KeyError,TypeError) as e:
         print(f'Onboarding error: {e}',file=sys.stderr);return 2

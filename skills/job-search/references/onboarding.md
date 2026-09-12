@@ -13,7 +13,20 @@ python S/scripts/onboarding.py bind --workspace W --project P
 python S/scripts/onboarding.py plan --workspace W --project P
 ```
 
-The helper refuses a different project on subsequent use. Store W's exact path and workspace ID in an allowed note in this dedicated project so the next conversation can find it. Do not put the pointer in a public checkout or global instructions. On each turn, use the real current project path for `--project`; do not substitute the saved path merely to bypass a mismatch. A relocation needs an explicit user-directed transfer; do not silently rewrite the binding.
+`bind` writes `.job-search-project.json` in P with W's exact path and workspace ID (plus a relative path if W is within P). Read this pointer first in each new session; never search parent folders for candidate records. A repeat `bind` repairs a missing pointer for the same workspace. It refuses to overwrite a pointer belonging to another workspace. Do not put the pointer in a public checkout or global instructions. On each turn, use the real current project path for `--project`; do not substitute the saved path to bypass a mismatch.
+
+For a renamed/moved project, `workspace.py show` still reads and validates the evidence. Ask the candidate to confirm the new project location and save that decision as a candidate source. Run `rebind --workspace W --project P --workspace-id ID --decision-source SOURCE_ID --expected-revision REVISION`. This preserves answers and identity, appends binding history, and refreshes the pointer. It pauses any active saved routine until native schedule paths are checked again; it cannot change the actual host timer. If the pointer's old absolute W path is unavailable and there is no working relative path, ask for the new records location once. Never scan the computer or start a replacement empty bank. A copy for a different candidate/search must be a separately authorized import into a new workspace, not a rebind.
+
+## Save one question and answer
+
+Use these transactions instead of hand-building pending Q&A records:
+
+```sh
+python S/scripts/onboarding.py ask --workspace W --project P --topic target-work --dimension occupation --question "What kind of work would you like to find?" --expected-revision REVISION
+python S/scripts/onboarding.py save-answer --workspace W --project P --question-id QUESTION_ID --answer-file W/scratch/answer.txt --interpretation "Candidate's stated target work" --expected-revision REVISION
+```
+
+Resolve `python` to the detected runtime (`python3` on many Macs/Linux systems; `py -3` or a full executable path on Windows). Write the exact received answer to the UTF-8 input file. `ask` returns the saved question ID; present that exact question and wait. `save-answer` saves the source and exact Q&A, updates `session.next_action`, and leaves coverage pending. Then use the [schema examples](state-schema.md) to map only supported facts and evidence and commit. Run `plan` again. A retry with the same answer is idempotent; a changed answer needs an explicit sourced correction. Do not ask a second question while a pending question or unmapped answer needs attention. One topic can have multiple dimensions, but one question must address only one decision.
 
 ## Resume intake is a real check
 

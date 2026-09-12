@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Guarded private workspace storage. Python 3.10+, standard library only."""
+"""Guarded private workspace storage. Python 3.9+, standard library only."""
 import argparse
 import copy
 from contextlib import contextmanager
 import hashlib
 import json
 import os
+import socket
 from pathlib import Path, PurePosixPath
 import re
 import sys
@@ -38,15 +39,24 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 def checked_root(value):
-    root = Path(value).absolute()
+    require(isinstance(value,(str,Path)) and str(value).strip(), 'An explicit workspace/project path is required.')
+    root = Path(value).resolve()
     require(root.parent != root, 'A drive/filesystem root cannot be a workspace.')
-    for part in [root, *root.parents]:
-        require(not part.is_symlink() and not (hasattr(part,'is_junction') and part.is_junction()),
-                'Workspace paths may not contain symlinks or junctions.')
-    require(root.resolve() == root, 'Workspace must use a direct absolute path.')
     return root
 
+def configure_output():
+    # Windows redirected stdout may otherwise encode Unicode as cp1252 after a save.
+    for stream in (sys.stdout,sys.stderr):
+        if hasattr(stream,'reconfigure'):
+            stream.reconfigure(encoding='utf-8',errors='backslashreplace')
+
+def same_path(left,right):
+    a,b=Path(left),Path(right)
+    try: return a.samefile(b)
+    except OSError: return os.path.normcase(str(a.resolve()))==os.path.normcase(str(b.resolve()))
+
 def inside(root, relative):
+    root=checked_root(root)
     require(isinstance(relative,str) and relative, 'A relative file path is required.')
     require('\\' not in relative and ':' not in relative, 'Use relative forward-slash paths without drive names.')
     path = PurePosixPath(relative)
@@ -207,12 +217,14 @@ def load(root):
     require(meta.get('format') in ('job-search','job-search-starter-kit') and meta.get('workspace_id')==state.get('workspace_id'),'Workspace identity mismatch.')
     return validate(state,root)
 
-def initialize(value):
+def initialize(value,allow_git_parent=False):
     root=checked_root(value)
     require(not root.exists(),'Initialize requires a NEW directory; existing folders are never adopted or overwritten.')
     require(root.parent.is_dir(),'Choose an existing writable parent folder.')
     for parent in root.parents:
-        require(not (parent/'SKILL.md').exists() and not (parent/'.git').exists(),'Private workspace must be outside an installed skill and source repository.')
+        require(not (parent/'SKILL.md').exists() and not (parent/'skills/job-search/SKILL.md').exists(), 'Private workspace must be outside an installed skill and public skill source repository.')
+        require(allow_git_parent or not (parent/'.git').exists(),
+                f'Git repository ancestor: {parent}. Choose a private folder outside it, or explicitly use init --allow-git-parent for a private project/dotfiles repository. The new records folder is ignored by Git; never force-add private records.')
     root.mkdir()
     (root/'.job-search').mkdir(); (root/'.job-search/backups').mkdir()
     for bucket in BUCKETS: (root/bucket).mkdir()
@@ -230,7 +242,10 @@ def status_note(root,state):
     txt=f"# Your job search\n\nSaved revision: {state['revision']}\n\nNext action: {state['session']['next_action']}\n\nApplications tracked: {len(state['applications'])}\n\nThe AI maintains these files for you. Continue in the same project or supply this workspace location.\n"
     if state.get('onboarding'):
         import onboarding
-        review=onboarding.plan(root,state['onboarding']['project_root'])
+        try: review=onboarding.plan(root,state['onboarding']['project_root'])
+        except WorkspaceError:
+            p.write_text(txt+'\nProject folder unavailable. Use onboarding.py rebind after confirming the new location.\n',encoding='utf-8')
+            return
         txt+='\n## Interview progress\n\nResume: '+review['resume_status']+'\n\n'
         for topic in review['topics']:
             txt+=f"- [{'x' if topic['checked'] else ' '}] {topic['title']} ({topic['status']})\n"
@@ -241,13 +256,13 @@ def status_note(root,state):
         txt+='\nThese boxes are derived from evidence. Skipped topics retain their reason; do not edit the boxes.\n'
     p.write_text(txt,encoding='utf-8')
 
-def guard_history(old,new):
+def guard_history(old,new,allow_rebind=False):
     import linkedin
     linkedin.guard_history(old,new)
     import routine
     routine.guard_history(old,new)
     import onboarding
-    onboarding.guard_history(old,new)
+    onboarding.guard_history(old,new,allow_rebind=allow_rebind)
     for name in ('sources','interviews','decisions'):
         before=indexed(old[name],name); after=indexed(new[name],name)
         require(all(k in after and after[k]==v for k,v in before.items()),f'{name} is append-only; add a correction instead of overwriting history.')
@@ -272,7 +287,7 @@ def write_lock(value):
     except FileExistsError:
         raise WorkspaceError('Another writer or an interrupted write owns the lock. Inspect its owner; never steal it based on age.')
     try:
-        with os.fdopen(fd,'w',encoding='utf-8') as f: json.dump({'token':token,'pid':os.getpid(),'started_at':now()},f)
+        with os.fdopen(fd,'w',encoding='utf-8') as f: json.dump({'token':token,'pid':os.getpid(),'host':socket.gethostname(),'started_at':now()},f)
         yield root
     finally:
         if lock.exists():
@@ -281,14 +296,14 @@ def write_lock(value):
             except (OSError,ValueError): pass
 
 
-def commit(value,candidate,expected,summary):
+def commit(value,candidate,expected,summary,*,allow_rebind=False):
     with write_lock(value) as root:
         old=load(root)
         require(old['revision']==expected,'Revision conflict: reread current state and merge your intended change.')
         new=copy.deepcopy(candidate)
         require(new.get('workspace_id')==old['workspace_id'] and new.get('created_at')==old['created_at'],'Cannot change workspace identity.')
         require(new.get('revision')==expected,'Draft revision must match the state you read.')
-        validate(new,root); guard_history(old,new)
+        validate(new,root); guard_history(old,new,allow_rebind=allow_rebind)
         new['revision']=expected+1; new['updated_at']=now()
         new['history'].append({'revision':new['revision'],'at':new['updated_at'],'summary':summary})
         backup=inside(root,f".job-search/backups/state-{expected:06d}-{uuid.uuid4().hex[:8]}.json")
@@ -314,16 +329,63 @@ def import_file(value,source,relative):
         with dest.open('xb') as f: f.write(data); f.flush(); os.fsync(f.fileno())
     return {'file':relative,'sha256':digest(dest)}
 
+def process_alive(pid):
+    require(isinstance(pid,int) and not isinstance(pid,bool) and pid>0,'Lock has no valid process ID; inspect manually.')
+    if os.name=='nt':
+        import ctypes
+        from ctypes import wintypes
+        kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+        kernel.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]
+        kernel.OpenProcess.restype=wintypes.HANDLE
+        kernel.CloseHandle.argtypes=[wintypes.HANDLE]
+        kernel.GetExitCodeProcess.argtypes=[wintypes.HANDLE,ctypes.POINTER(wintypes.DWORD)]
+        handle=kernel.OpenProcess(0x1000,False,pid)
+        if not handle:
+            require(ctypes.get_last_error()==87,'Cannot establish lock process status; inspect manually.')
+            return False
+        try:
+            code=wintypes.DWORD()
+            require(kernel.GetExitCodeProcess(handle,ctypes.byref(code)),'Cannot inspect lock process.')
+            return code.value==259
+        finally: kernel.CloseHandle(handle)
+    try: os.kill(pid,0);return True
+    except ProcessLookupError:return False
+    except PermissionError:raise WorkspaceError('Cannot inspect lock process; refusing to unlock.')
+
+def unlock(value,token):
+    root=checked_root(value);load(root)
+    recovery=inside(root,'.job-search/unlock.lock')
+    try:fd=os.open(recovery,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+    except FileExistsError:raise WorkspaceError('Another recovery owns unlock.lock; inspect it before retrying.')
+    try:
+        os.close(fd)
+        return unlock_owned(root,token)
+    finally:recovery.unlink()
+
+def unlock_owned(root,token):
+    path=inside(root,'.job-search/write.lock')
+    data=path.read_bytes();owner=json.loads(data)
+    require(owner.get('token')==token,'Lock token changed or does not match.')
+    require(owner.get('host')==socket.gethostname(),'Lock host unknown or different; inspect on its original computer.')
+    require(not process_alive(owner.get('pid')),'Lock owner is still running; no lock removed.')
+    require(path.read_bytes()==data,'Lock changed during inspection; no lock removed.')
+    path.unlink()
+    return {'unlocked':True,'workspace_id':load(root)['workspace_id']}
+
 def main():
+    configure_output()
     p=argparse.ArgumentParser(description=__doc__); sub=p.add_subparsers(dest='command',required=True)
-    for command in ('init','show','validate','commit','import-file'):
+    for command in ('init','show','validate','commit','import-file','unlock'):
         q=sub.add_parser(command); q.add_argument('--workspace',required=True)
+        if command=='init':q.add_argument('--allow-git-parent',action='store_true')
+        if command=='unlock':q.add_argument('--token',required=True)
         if command=='commit':
             q.add_argument('--input',required=True); q.add_argument('--expected-revision',type=int,required=True); q.add_argument('--summary',required=True)
         if command=='import-file': q.add_argument('--source',required=True); q.add_argument('--relative',required=True)
     args=p.parse_args()
     try:
-        if args.command=='init': result=initialize(args.workspace)
+        if args.command=='init': result=initialize(args.workspace,args.allow_git_parent)
+        elif args.command=='unlock':result=unlock(args.workspace,args.token)
         elif args.command=='commit': result=commit(args.workspace,json.loads(Path(args.input).read_text(encoding='utf-8')),args.expected_revision,args.summary)
         elif args.command=='import-file': result=import_file(args.workspace,args.source,args.relative)
         else: result=load(args.workspace)

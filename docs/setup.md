@@ -66,7 +66,7 @@ Click the mode label at the lower left of the message box, then select **Auto**.
 
 These screenshots show the guide author's current desktop apps. **Full access grants access beyond your project folder; Claude's Auto keeps automatic safety checks.** These are the settings chosen for this walkthrough. More restrictive modes can also run the skill with your approvals. If a setting is unavailable, check your app version or organization policy. Sources: [Codex permissions](https://learn.chatgpt.com/docs/agent-approvals-security), [Claude permission modes](https://code.claude.com/docs/en/desktop#choose-a-permission-mode).
 
-If the AI needs a separate private records folder outside the selected project, approve that **specific folder** when asked, or give it another writable location. Keep candidate records outside the downloaded public repository and installed skill. Protected skill folders can still require installation approval even when ordinary project files are writable.
+The skill normally creates a private `records` subfolder in your dedicated project. Access to your whole computer is not required by the helpers. If the AI needs a separate private records folder outside the selected project, approve that **specific folder** when asked, or give it another writable location. Keep candidate records outside the downloaded public repository and installed skill. Protected skill folders can still require installation approval even when ordinary project files are writable.
 
 **Before continuing:** the correct project is selected, file editing is allowed, and you are ready to approve the installation if asked. The AI handles the remaining folders and files. On later visits, check the selected project and permission mode again if saving stops working.
 
@@ -214,7 +214,7 @@ This installs project copies for both apps. Then follow [Summon the skill](#summ
 
 The [installing instructions](../INSTALL.md) are for the AI. The reusable skill is in [skills/job-search](../skills/job-search/SKILL.md). It keeps private records outside the installed skill and public repository. Installation does not alter another candidate's pipeline.
 
-The state helper uses Python 3.10+; document tools may need extra packages or a renderer. The AI checks these and handles supported local setup. Other AI tools need separate capability checks. No hiring outcome is guaranteed.
+The state helper uses Python 3.9+; document tools may need extra packages or a renderer. The AI checks these and handles supported local setup. Other AI tools need separate capability checks. No hiring outcome is guaranteed.
 
 [Validation and limitations](VALIDATION.md) · [Design](DESIGN.md) · [Tests](../tests) · [Attribution](../NOTICE.md)
 

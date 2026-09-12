@@ -157,6 +157,7 @@ def prompt(root, project):
 
 
 def main():
+    ws.configure_output()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('check', 'claim', 'prompt'))
     parser.add_argument('--workspace', required=True)

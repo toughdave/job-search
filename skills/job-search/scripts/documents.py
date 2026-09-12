@@ -2,6 +2,8 @@
 """Export an evidence-linked document model into versioned DOCX/PDF drafts."""
 import argparse
 import json
+import os
+import unicodedata
 from pathlib import Path
 import sys
 sys.dont_write_bytecode = True
@@ -62,8 +64,9 @@ def build_docx(model,path):
         if s['heading']: d.add_paragraph(s['heading'],'Heading 1')
         for x in s.get('paragraphs',[]): d.add_paragraph(x['text'])
         for x in s.get('bullets',[]): d.add_paragraph(x['text'],'List Bullet')
-        for e in s.get('entries',[]):
+        for index,e in enumerate(s.get('entries',[])):
             p=d.add_paragraph(); p.add_run(e['title']['text']).bold=True; p.paragraph_format.keep_with_next=True
+            if index:p.paragraph_format.space_before=Pt(8)
             if e.get('subtitle'):
                 p=d.add_paragraph(e['subtitle']['text']); p.paragraph_format.keep_with_next=True
             for x in e.get('paragraphs',[]): d.add_paragraph(x['text'])
@@ -71,18 +74,61 @@ def build_docx(model,path):
     d.core_properties.author=''; d.core_properties.last_modified_by=''; d.core_properties.title=model['kind'].replace('_',' ').title()
     d.save(path)
 
+def font_candidates(explicit=None):
+    paths=[]
+    if explicit:paths.append(Path(explicit))
+    folders=[Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts',
+             Path('/System/Library/Fonts/Supplemental'),Path('/System/Library/Fonts'),Path('/Library/Fonts'),
+             Path('/usr/share/fonts/truetype/dejavu'),Path('/usr/share/fonts/truetype/noto'),Path('/usr/share/fonts/opentype/noto')]
+    names=('arial.ttf','Arial.ttf','DejaVuSans.ttf','NotoSans-Regular.ttf','segoeui.ttf',
+           'msyh.ttc','simsun.ttc','Arial Unicode.ttf','NotoSansCJK-Regular.ttc')
+    for folder in folders:
+        paths.extend(folder/name for name in names if (folder/name).is_file())
+    return list(dict.fromkeys(paths))
+
+def bold_sibling(path):
+    names={'arial.ttf':'arialbd.ttf','Arial.ttf':'Arial Bold.ttf','DejaVuSans.ttf':'DejaVuSans-Bold.ttf',
+           'NotoSans-Regular.ttf':'NotoSans-Bold.ttf','segoeui.ttf':'segoeuib.ttf','msyh.ttc':'msyhbd.ttc',
+           'NotoSansCJK-Regular.ttc':'NotoSansCJK-Bold.ttc'}
+    sibling=path.with_name(names.get(path.name,path.name))
+    return sibling if sibling.is_file() else path
+
+def pdf_fonts(model,explicit=None):
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont,TTFError
+    fonts=[]
+    for index,path in enumerate(font_candidates(explicit)):
+        try:
+            regular=TTFont('CandidateFont'+str(index),str(path))
+            bold=TTFont('CandidateBold'+str(index),str(bold_sibling(path)))
+            pdfmetrics.registerFont(regular);pdfmetrics.registerFont(bold)
+            fonts.append((regular,bold))
+        except (OSError,TTFError):
+            if explicit and path==Path(explicit):raise ws.WorkspaceError('Cannot load the supplied TrueType font: '+str(path))
+    texts=[i['text'] for i in items(model)]+[s['heading'] for s in model['sections']]+['\u2022']
+    chars=set(''.join(texts))-set('\n\r\t')
+    missing=sorted(c for c in chars if not any(ord(c) in r.face.charToGlyph and ord(c) in b.face.charToGlyph for r,b in fonts))
+    ws.require(not missing,'No installed TrueType font covers: '+', '.join(f'U+{ord(c):04X} ({unicodedata.name(c,"unnamed")})' for c in missing[:12])+'. Supply a Unicode .ttf/.ttc using --font (for example Noto Sans for the required language), or install a suitable font. No draft was published.')
+    return fonts
+
 def build_pdf(model,path,arial=None):
     from reportlab.lib.pagesizes import A4,letter
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.colors import HexColor
     from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,ListFlowable,ListItem
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    font='Helvetica'; bold='Helvetica-Bold'
-    if arial:
-        font='CandidateArial'; pdfmetrics.registerFont(TTFont(font,str(arial)))
-        sibling=Path(arial).with_name('arialbd.ttf')
-        if sibling.exists(): bold='CandidateArialBold'; pdfmetrics.registerFont(TTFont(bold,str(sibling)))
+    fonts=pdf_fonts(model,arial);font=fonts[0][0].fontName;bold=fonts[0][1].fontName
+    def markup(text,strong=False):
+        result=[];run='';last=None
+        for char in text:
+            if char=='\n':
+                if run:result.append(f'<font name="{last}">{escape(run)}</font>');run=''
+                result.append('<br/>');continue
+            if char in '\r\t':char=' '
+            face=next(pair[1 if strong else 0] for pair in fonts if ord(char) in pair[0].face.charToGlyph and ord(char) in pair[1].face.charToGlyph).fontName
+            if last!=face and run:result.append(f'<font name="{last}">{escape(run)}</font>');run=''
+            last=face;run+=char
+        if run:result.append(f'<font name="{last}">{escape(run)}</font>')
+        return ''.join(result)
     normal=ParagraphStyle('Body',fontName=font,fontSize=11,leading=14,spaceAfter=5)
     title=ParagraphStyle('Name',parent=normal,fontName=bold,fontSize=14,leading=18,alignment=1,spaceAfter=5)
     contact=ParagraphStyle('Contact',parent=normal,alignment=1,spaceAfter=8)
@@ -90,14 +136,15 @@ def build_pdf(model,path,arial=None):
     entry=ParagraphStyle('Entry',parent=normal,fontName=bold,keepWithNext=True)
     sub=ParagraphStyle('Subtitle',parent=normal,keepWithNext=True)
     bullet=ParagraphStyle('BulletBody',parent=normal,spaceAfter=3)
-    def para(x,style=normal):return Paragraph(escape(x['text']).replace('\n','<br/>'),style)
+    def para(x,style=normal):return Paragraph(markup(x['text'],style.fontName==bold),style)
     def bullets(values):
-        if values: story.append(ListFlowable([ListItem(para(x,bullet),leftIndent=0) for x in values],bulletType='bullet',leftIndent=13,bulletFontName=font,bulletFontSize=8,spaceAfter=4))
+        if values: story.append(ListFlowable([ListItem(para(x,bullet)) for x in values],bulletType='bullet',leftIndent=13,bulletDedent=8,bulletFontName=font,bulletFontSize=8,spaceAfter=4))
     story=[para(model['name'],title),para(model['contact'],contact)]
     for s in model['sections']:
-        if s['heading']: story.append(Paragraph(escape(s['heading']),heading))
+        if s['heading']: story.append(Paragraph(markup(s['heading'],True),heading))
         story.extend(para(x) for x in s.get('paragraphs',[])); bullets(s.get('bullets',[]))
-        for e in s.get('entries',[]):
+        for index,e in enumerate(s.get('entries',[])):
+            if index:story.append(Spacer(1,8))
             story.append(para(e['title'],entry))
             if e.get('subtitle'): story.append(para(e['subtitle'],sub))
             story.extend(para(x) for x in e.get('paragraphs',[])); bullets(e.get('bullets',[]))
@@ -125,7 +172,8 @@ def export(value,model,stem,arial=None):
     return {'outputs':outputs,'pdf_pages':len(reader.pages),'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__); p.add_argument('--workspace',required=True); p.add_argument('--model',required=True); p.add_argument('--stem',required=True); p.add_argument('--arial')
+    ws.configure_output()
+    p=argparse.ArgumentParser(description=__doc__); p.add_argument('--workspace',required=True); p.add_argument('--model',required=True); p.add_argument('--stem',required=True); p.add_argument('--arial','--font',dest='arial')
     a=p.parse_args()
     try:
         result=export(a.workspace,json.loads(Path(a.model).read_text(encoding='utf-8')),a.stem,a.arial); print(json.dumps(result,indent=2)); return 0

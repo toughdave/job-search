@@ -1,6 +1,6 @@
 # Workspace operations for the AI
 
-The person never edits these files. Locate a Python 3.10+ runtime (`python`, `python3`, `py -3`, or a harness-bundled runtime). Do not install system packages or change PATH. If none is available, ask for the single missing runtime or use the harness's supported package environment with permission. Do not fall back to unguarded state writes.
+The person never edits these files. Locate a Python 3.9+ runtime (`python`, `python3`, `py -3`, or a harness-bundled runtime). Do not install system packages or change PATH. If none is available, ask for the single missing runtime or use the harness's supported package environment with permission. Do not fall back to unguarded state writes.
 
 `S` below is this installed skill's absolute directory. `W` is the NEW private workspace's absolute path. Resolve both from actual locations; do not copy example machine paths.
 
@@ -9,11 +9,13 @@ python S/scripts/workspace.py init --workspace W
 python S/scripts/workspace.py show --workspace W
 ```
 
-Initialization refuses an existing directory, filesystem roots, links/junctions, and paths inside a Git repository or installed skill. Choose a new empty sibling under an already existing writable parent. It never adopts an existing job-search folder. It writes a workspace identity marker, authoritative `.job-search/state.json`, content directories and a friendly status note. Initialization alone does not know the candidate's identity.
+Initialization refuses an existing directory, filesystem roots, installed skill directories and the public skill source checkout. Parent aliases such as macOS `/var` and `/tmp` are resolved; links/junctions inside the workspace remain forbidden. Prefer a NEW `records` subfolder in the dedicated project, or a private sibling under an existing writable parent. A Git ancestor is identified in the error: choose a location outside it, or use `init --allow-git-parent` only for an explicitly accepted private project/dotfiles repository. The new records folder contains `.gitignore` with `*`; never force-add its contents. This option still cannot place records in the installed skill or public skill source. Initialization writes an identity marker, authoritative `.job-search/state.json`, content directories and a status note; it does not infer candidate identity.
 
 Remember W in the current conversation/project through an allowed project-local note if needed; do not modify global memory, another project's AGENTS.md/CLAUDE.md, or the shared installed skill. If the project is the public source repository, keep all personal pointers and state outside it. In a new conversation without an accessible pointer, ask for the workspace location once instead of searching unrelated folders.
 
 ## Save an answer or other update
+
+For guided Q&A, prefer `onboarding.py ask` and `save-answer` as documented in [onboarding](onboarding.md). Use the lower-level transaction below for source intake, fact/evidence mappings, corrections and other state changes. The [schema table and valid examples](state-schema.md) list accepted values; do not grep the Python to guess enums. In all command examples, `python` means the detected compatible interpreter; use `python3` on Mac/Linux when that is its actual name, or the full private runtime path.
 
 1. Read state with `show`. Note `revision` and `workspace_id`.
 2. Write the raw answer or source to a temporary file inside W, then use `import-file` to save an immutable, versioned content file. It accepts a source path outside W only for an explicitly supplied file; never search unrelated files.
@@ -61,6 +63,8 @@ Additional fields may hold useful details; keep all candidate facts sourced. IDs
 Version 1.1 adds an optional `onboarding` extension to schema v1. Use [onboarding operations](onboarding.md) to bind a private interview to the selected project and derive its checklist from evidence. The extension is validated on load/commit, and its interview records are append-only. Preserve it during every state update; never revert to an older skill version to bypass its checks.
 
 Read from disk every turn. Keep one writer per workspace. The helper's exclusive lock refuses concurrent writes; a lock's age is not evidence that its owner stopped. If a process was interrupted, inspect the recorded PID and the actual host process/session. Only remove its exact lock file after establishing that owner is stopped and no write is running. Preserve the state and backups; ask for help if ownership is uncertain.
+
+Use `workspace.py unlock --workspace W --token TOKEN_FROM_LOCK` for a lock created by this release. It verifies the recorded host, token and that the process has stopped; a live/reused PID or inaccessible process remains locked. Legacy locks without a host and locks copied from another computer require manual owner verification, never age-based deletion. A failed recovery can leave `unlock.lock`; inspect it before retrying. Project relocation uses the explicit `onboarding.py rebind` flow; ordinary draft commits cannot rewrite the project binding.
 
 On recovery, validate state hashes, inspect pending actions and resume the recorded next action. Unsupported schemas, missing evidence or altered submitted snapshots must stop state writes until resolved. Never “repair” by silently deleting the conflicting history. Before repeating any pending submission, check employer state to avoid duplicate applications.
 

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "workspace_id": "fictional-example-do-not-copy",
+  "revision": 0,
+  "created_at": "2026-01-01T00:00:00+00:00",
+  "updated_at": "2026-01-01T00:00:00+00:00",
+  "profile": {"facts": [], "preferences": {}},
+  "sources": [],
+  "interviews": [],
+  "decisions": [],
+  "applications": [],
+  "runs": [],
+  "pending_actions": [],
+  "integrations": {},
+  "session": {"next_action": "Bind this new workspace to the selected project, then check resume intake."},
+  "history": []
+}
