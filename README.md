@@ -12,10 +12,10 @@ Click the small ↗ beside a step to open its instructions.
 flowchart TD
     A["1 · Open your AI app <a href='https://github.com/toughdave/job-search#1-open-codex-or-claude-code' target='_top'>↗</a><br/>Choose a local project"]
     B["2 · Add your resume <a href='https://github.com/toughdave/job-search#2-add-your-resume-before-sending' target='_top'>↗</a><br/>Or begin without one"]
-    C["3 · Copy the start message <a href='https://github.com/toughdave/job-search#3-copy-the-start-message-then-press-send' target='_top'>↗</a><br/>Send it once to start"]
+    C["3 · Start message <a href='https://github.com/toughdave/job-search#3-copy-the-start-message-then-press-send' target='_top'>↗</a><br/>Copy, paste, then send"]
     D["4 · Answer questions <a href='https://github.com/toughdave/job-search#4-let-the-ai-set-up-then-answer-its-questions' target='_top'>↗</a><br/>AI handles the setup"]
     E["5 · Review the draft <a href='https://github.com/toughdave/job-search#5-review-the-first-useful-result' target='_top'>↗</a><br/>Ask for corrections"]
-    F["Next visit · Same project <a href='https://github.com/toughdave/job-search#coming-back-later' target='_top'>↗</a><br/>Continue my job search."]
+    F["6 · Continue later <a href='https://github.com/toughdave/job-search#coming-back-later' target='_top'>↗</a><br/>Reopen the same project"]
     A --> B --> C --> D --> E --> F
 ```
 
