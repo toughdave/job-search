@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, and track applications and replies. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   compatibility: Local AI agent with file access; Python 3.10+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -21,9 +21,13 @@ On every return, read current state from disk and any pending work before decidi
 
 ## Conversational onboarding
 
-Read [interview and evidence](references/interview.md). Inspect the supplied resume first. Ask **one short question at a time**; use a recommendation for process choices and never suggest a personal fact as the answer. Answer questions yourself when the supplied files or environment establish the fact. Save each meaningful answer or correction immediately, read it back from disk, then continue. Do not wait until the end to save an interview.
+Read [project onboarding](references/onboarding.md) and [interview and evidence](references/interview.md). One-question pacing, waiting for answers, evidence gathering and file management are defaults even when invoked with only “Use job-search.” Bind the private interview to the actual selected project, verify resume intake, and run the evidence-derived checklist on every return. Never infer an attached/read resume from installation or a candidate saying yes. If no resume exists, record that answer and help build one from supported experience.
+
+Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Missing checkmarks are not proof of missing answers.
 
 Establish target work, country/region and essential constraints; ask about missing evidence when it affects a decision. One question means one decision: ask about target work first, then location in a later turn if still unknown. Do not bundle “what role and location?” into a single question. Let a candidate without a resume describe their most recent work or study. Begin one useful fit check or draft as soon as enough is known. Continue the interview only where the next task needs it. Do not conduct an endless “complete your whole profile first” interview.
+
+Expand the evidence bank beyond resume bullets with a small set of real, occupation-relevant scenarios: context, personal actions, tools/methods and a supported result or lesson. Ask only missing details, accept an honest lack of experience, and preserve project/volunteer/study boundaries. Offer an optional LinkedIn review once and save the choice. A new project gets an independent interview and evidence bank; reuse another project's material only through explicitly authorized copying, never automatic access or inherited checkmarks/consent.
 
 ## Do the search and application work
 

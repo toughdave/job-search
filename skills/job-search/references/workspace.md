@@ -58,6 +58,8 @@ Additional fields may hold useful details; keep all candidate facts sourced. IDs
 
 ## Recovery and concurrency
 
+Version 1.1 adds an optional `onboarding` extension to schema v1. Use [onboarding operations](onboarding.md) to bind a private interview to the selected project and derive its checklist from evidence. The extension is validated on load/commit, and its interview records are append-only. Preserve it during every state update; never revert to an older skill version to bypass its checks.
+
 Read from disk every turn. Keep one writer per workspace. The helper's exclusive lock refuses concurrent writes; a lock's age is not evidence that its owner stopped. If a process was interrupted, inspect the recorded PID and the actual host process/session. Only remove its exact lock file after establishing that owner is stopped and no write is running. Preserve the state and backups; ask for help if ownership is uncertain.
 
 On recovery, validate state hashes, inspect pending actions and resume the recorded next action. Unsupported schemas, missing evidence or altered submitted snapshots must stop state writes until resolved. Never “repair” by silently deleting the conflicting history. Before repeating any pending submission, check employer state to avoid duplicate applications.

@@ -9,6 +9,7 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import sys
+sys.dont_write_bytecode = True
 import tempfile
 import uuid
 from datetime import datetime, timezone
@@ -189,6 +190,8 @@ def validate(state, root):
     require(isinstance(state.get('session'),dict) and isinstance(state['session'].get('next_action'),str),'Next action required.')
     require(isinstance(state.get('integrations'),dict),'Integrations must be an object.')
     require(isinstance(state.get('history'),list),'History required.')
+    import onboarding
+    onboarding.validate(state,root)
     return state
 
 def load(root):
@@ -221,9 +224,18 @@ def status_note(root,state):
     # Derived view only. Failure cannot invalidate a committed authoritative state.
     p=inside(root,'notes/STATUS.md')
     txt=f"# Your job search\n\nSaved revision: {state['revision']}\n\nNext action: {state['session']['next_action']}\n\nApplications tracked: {len(state['applications'])}\n\nThe AI maintains these files for you. Continue in the same project or supply this workspace location.\n"
+    if state.get('onboarding'):
+        import onboarding
+        review=onboarding.plan(root,state['onboarding']['project_root'])
+        txt+='\n## Interview progress\n\nResume: '+review['resume_status']+'\n\n'
+        for topic in review['topics']:
+            txt+=f"- [{'x' if topic['checked'] else ' '}] {topic['title']} ({topic['status']})\n"
+        txt+='\nThese boxes are derived from evidence. Skipped topics retain their reason; do not edit the boxes.\n'
     p.write_text(txt,encoding='utf-8')
 
 def guard_history(old,new):
+    import onboarding
+    onboarding.guard_history(old,new)
     for name in ('sources','interviews','decisions'):
         before=indexed(old[name],name); after=indexed(new[name],name)
         require(all(k in after and after[k]==v for k,v in before.items()),f'{name} is append-only; add a correction instead of overwriting history.')

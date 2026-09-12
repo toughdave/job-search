@@ -1,4 +1,4 @@
 interface:
   display_name: "Job Search"
   short_description: "Your job search, guided through a conversation"
-  default_prompt: "Use $job-search with my resume, ask one short question at a time, and handle the files while preparing my first suitable application for review."
+  default_prompt: "Use $job-search to start my job search."

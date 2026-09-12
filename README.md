@@ -6,14 +6,21 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 ## The flow at a glance
 
-```mermaid
-flowchart TD
-    A["1 · Open your AI app<br/>Choose a local project"] --> B["2 · Add your resume<br/>Or paste its file path"]
-    B --> C["3 · Paste the message<br/>Send once to start"]
-    C --> D["4 · Answer questions<br/>AI handles the setup"]
-    D --> E["5 · Review the draft<br/>Ask for corrections"]
-    E --> F["Next visit · Same chat<br/>Continue my job search."]
-```
+**Click a step to jump to its instructions.**
+
+<table>
+<tr><td align="center"><a href="#1-open-codex-or-claude-code"><strong>1 · Open your AI app</strong><br/>Choose a local project</a></td></tr>
+<tr><td align="center">↓</td></tr>
+<tr><td align="center"><a href="#2-add-your-resume-before-sending"><strong>2 · Add your resume</strong><br/>Or begin without one</a></td></tr>
+<tr><td align="center">↓</td></tr>
+<tr><td align="center"><a href="#3-copy-the-start-message-then-press-send"><strong>3 · Copy the start message</strong><br/>Click here to see what to send</a></td></tr>
+<tr><td align="center">↓</td></tr>
+<tr><td align="center"><a href="#4-let-the-ai-set-up-then-answer-its-questions"><strong>4 · Answer questions</strong><br/>AI handles the setup and saves answers</a></td></tr>
+<tr><td align="center">↓</td></tr>
+<tr><td align="center"><a href="#5-review-the-first-useful-result"><strong>5 · Review the draft</strong><br/>Ask for corrections</a></td></tr>
+<tr><td align="center">↓</td></tr>
+<tr><td align="center"><a href="#coming-back-later"><strong>Next visit · Same project and chat</strong><br/>Continue my job search.</a></td></tr>
+</table>
 
 ## First time: step by step
 
@@ -39,18 +46,20 @@ Use **one** method:
 
 The AI must confirm it can read the file. An attachment icon alone does not prove that it received readable resume text.
 
-### 3. Paste this message, then press Send
+<a name="3-paste-this-message-then-press-send"></a>
+
+### 3. Copy the start message, then press Send
 
 Copy the complete message below into the **same message box** where you added your resume or its location:
 
 ```text
 Install https://github.com/toughdave/job-search for this project.
-Use job-search with my resume and handle the setup.
-Ask one question at a time.
-Set a goal: prepare my first suitable application for review.
+Then use job-search to start my search.
 ```
 
 **Send this once.** It asks the AI to install and begin; you do not also need a terminal command or “Continue my job search” now. Include your resume location or no-resume line before sending if you chose that option.
+
+One-question pacing, waiting for your answers, saving progress and managing files are built into the skill. You do not need to repeat those instructions. A native goal or recurring schedule is optional and can be requested later.
 
 ### 4. Let the AI set up, then answer its questions
 
@@ -63,6 +72,8 @@ For example, after reading your resume it might ask:
 > **You:** Office administration or customer support.
 
 Give your own answer. The AI saves it and asks the next question when needed. You do not fill out a tracker or arrange application folders.
+
+It also asks for relevant real examples beyond your resume: what happened, what you personally did, which tools you used, and the result or lesson. Its project-specific checklist is checked against saved answers before it asks again. If you pause halfway through, it should resume the missing detail. It will offer an optional LinkedIn review; you can say yes, no, or later.
 
 ### 5. Review the first useful result
 
@@ -77,8 +88,7 @@ If it cannot search the web, it may ask for a job posting. If a required fact or
 Skip installation. Open the **same local project**, add your resume or its location if you have not already supplied it, and send:
 
 ```text
-Use job-search with my resume.
-Ask one question at a time and handle the files for me.
+Use job-search.
 ```
 
 If the AI cannot find the skill, see [Need help?](#if-something-stops-you). If your search is already set up, use the returning message below instead.
@@ -95,6 +105,8 @@ If the AI cannot find the skill, see [Need help?](#if-something-stops-you). If y
 3. The AI should read your saved progress and continue the next action. Answer any new question or review the next result.
 
 You do not normally reinstall or attach the same resume again. Supply a new resume when it changes. If a new conversation cannot find your records, provide the private workspace location from step 4 and say `Resume my existing search at this location; do not start over.` Records on one computer do not automatically appear on another.
+
+For an independent search in a different occupation, use a new project and say `Use job-search for my new occupation.` It creates separate records and asks the relevant questions there. It must not read or reuse another project's private evidence or consent unless you explicitly ask it to copy specified material.
 
 ## If something stops you
 
@@ -140,6 +152,6 @@ The state helper uses Python 3.10+; document tools may need extra packages or a 
 
 [Validation and limitations](docs/VALIDATION.md) · [Design](docs/DESIGN.md) · [Tests](tests) · [Attribution](NOTICE.md)
 
-Official instructions checked for this guide: [Codex skills](https://learn.chatgpt.com/docs/build-skills), [local projects](https://learn.chatgpt.com/docs/projects), [Claude Code desktop setup](https://code.claude.com/docs/en/desktop-quickstart), [Claude Code skills](https://code.claude.com/docs/en/skills), and [GitHub diagrams](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams). App labels and attachment methods can vary by version.
+Official instructions checked for this guide: [Codex skills](https://learn.chatgpt.com/docs/build-skills), [local projects](https://learn.chatgpt.com/docs/projects), [Claude Code desktop setup](https://code.claude.com/docs/en/desktop-quickstart), [Claude Code skills](https://code.claude.com/docs/en/skills), and [GitHub section links](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links). App labels and attachment methods can vary by version.
 
 </details>
