@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
   compatibility: Local AI agent with file access; Python 3.10+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -33,7 +33,7 @@ Establish target work, country/region and essential constraints; ask about missi
 
 Build an employer-by-employer history, with separate entries for each role and period, from the resume or a one-question-at-a-time interview. Confirm whether the candidate has finished listing employers; a resume is not necessarily exhaustive. For every entry, save responsibilities and real scenarios linked to that employer, role and dates: context, personal actions, tools/methods and supported results or lessons. Use its actual bullets to direct questions; generic job expectations are question prompts, never candidate facts. Reconcile saved answers before asking again and keep incomplete roles pending across sessions. Follow the work-history coverage rules in [project onboarding](references/onboarding.md). Useful drafts can begin before the full interview is complete; do not mislabel partial onboarding as complete.
 
-Ask only missing details, accept an honest lack of experience, and preserve project/volunteer/study boundaries. Offer an optional LinkedIn review once and save the choice. A new project gets an independent interview and evidence bank; reuse another project's material only through explicitly authorized copying, never automatic access or inherited checkmarks/consent.
+Ask only missing details, accept an honest lack of experience, and preserve project/volunteer/study boundaries. Follow [LinkedIn and evidence](references/linkedin.md): capture the candidate's profile URL and resume-inclusion choice before formatting, or record their explicit omission. Offer profile reading/review once; when authorized, reconcile additional LinkedIn details into the evidence bank and resolve conflicts. After enough career evidence is gathered, prepare the fuller profile review. Check saved review freshness on return; public edits need specific approval and observed confirmation. A new project gets an independent interview and evidence bank; reuse another project's material only through explicitly authorized copying, never automatic access or inherited checkmarks/consent.
 
 ## Do the search and application work
 

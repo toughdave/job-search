@@ -194,6 +194,8 @@ def validate(state, root):
     onboarding.validate(state,root)
     import routine
     routine.validate(state)
+    import linkedin
+    linkedin.validate(state,root)
     return state
 
 def load(root):
@@ -240,6 +242,8 @@ def status_note(root,state):
     p.write_text(txt,encoding='utf-8')
 
 def guard_history(old,new):
+    import linkedin
+    linkedin.guard_history(old,new)
     import routine
     routine.guard_history(old,new)
     import onboarding

@@ -92,11 +92,9 @@ Older workspaces remain readable. On upgrade, `plan.work_history` reports missin
 
 After the essential profile or when a form needs it, use [reusable application questions](application-questions.md) for work authorization, sponsorship, start dates, compensation, logistics and scoped screening answers. Let the candidate choose now or just-in-time collection. Save their choice and each answer; do not turn installation into a compulsory long questionnaire.
 
-## Optional LinkedIn review
+## LinkedIn: early link, richer evidence, later review
 
-Offer once: “Would you like me to review your LinkedIn profile for improvements?” Save yes/no/later. A declined review resolves the choice; a deferral should not prompt again every visit. If yes, ask for their profile URL or pasted/exported profile content if absent. Verify it is the profile they supplied. Review only accessible authorized content, compare it with evidence, and draft specific headline, About, experience or skills improvements. Mark inaccessible sections as unreviewed. Do not claim to have inspected a profile based on its URL alone, infer qualifications from AI-written text, or publish profile changes without separate explicit authorization. Keep review outputs in this workspace. Consent in one project does not grant access in another.
-
-An accepted offer is not a completed review. Save the requested review and missing profile/access in `session.next_action` until it is performed or explicitly deferred. Add a separate optional review topic if tracking multiple steps; keep the actual review evidence/output distinct from the yes/no choice.
+Follow [LinkedIn and the evidence bank](linkedin.md). The `linkedin-url` topic captures a confirmed profile link for the resume or explicit omission early; the existing `linkedin` topic records the optional review choice separately. Reconcile authorized profile content during the interview, then prepare the fuller review after enough career information is gathered. `plan.linkedin` derives review freshness from saved evidence and profile snapshots. Declined/deferred choices remain respected; review freshness does not authorize public changes.
 
 ## Optional daily search
 

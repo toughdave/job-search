@@ -6,6 +6,8 @@ When drafting an employment entry or employer-specific cover-letter story, retri
 
 Use relevant fact IDs to make a requirement-to-evidence map before drafting. Keep candidate-reported evidence qualified internally; do not claim independent verification. Every candidate-facing identity line, summary, skill and achievement must be supported. Preserve a master and make a new filename for each tailored draft. Never rewrite a submitted file.
 
+Before formatting the first resume/CV, follow [LinkedIn](linkedin.md) to resolve the profile URL and inclusion choice from saved evidence or one missing question. Include the confirmed URL in `contact.text` with its fact ID when requested; a none/declined/deferred answer means omit it and continue. An unavailable LinkedIn page does not prevent using a candidate-confirmed URL. Reconcile material profile/resume conflicts before using the affected claims. On later corrections, use saved fact maps to identify drafts needing a new version; never overwrite submitted files.
+
 ## Default design
 
 One column, 11 pt body text, standard headings, real Word bullets, no photo/text boxes, contact details in the body, restrained dark blue headings. Use Arial in DOCX; the PDF helper uses Arial when a readable Arial font file is supplied, otherwise standard Helvetica. Role and month/year dates occupy one line, employer/location the following line. Letter or A4 is chosen for the destination. Resume length is usually one or two pages; employer rules and local conventions decide. Academic CVs may need more pages and sections. Do not impose a universal photo or page-count rule across countries.

@@ -17,7 +17,8 @@ def baseline_topics():
         {'id':'contact-phone','track_id':None,'kind':'profile','title':'Application phone number','required':True,'dimensions':['phone']},
         {'id':'credentials','track_id':None,'kind':'profile','title':'Certifications and professional licences','required':True,'dimensions':['certifications']},
         {'id':'relocation','track_id':None,'kind':'profile','title':'Willingness to relocate and any limits','required':True,'dimensions':['relocation']},
-        {'id':'routine-choice','track_id':None,'kind':'profile','title':'Optional weekday morning search','required':True,'dimensions':['decision']}
+        {'id':'routine-choice','track_id':None,'kind':'profile','title':'Optional weekday morning search','required':True,'dimensions':['decision']},
+        {'id':'linkedin-url','track_id':None,'kind':'profile','title':'LinkedIn profile link for resume or explicit omission','required':True,'dimensions':['url']}
     ]
 
 def validate(state, root):
@@ -143,9 +144,11 @@ def plan(value,project):
     history=experience.coverage(state,rows)
     configured={t['id']:t for t in ob['topics']}
     missing_baseline=[t for t in baseline_topics() if t['id'] not in configured]
+    import linkedin
     return {'workspace_id':state['workspace_id'],'revision':state['revision'],'project_root':ob['project_root'],
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
         'work_history':history,
+        'linkedin':linkedin.plan(state),
         'missing_baseline_topics':missing_baseline,
         'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved and history['ready'] and not missing_baseline),
         'unresolved_required_topics':unresolved,
