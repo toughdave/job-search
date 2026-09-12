@@ -39,3 +39,7 @@ docs/*REVIEW*.md
 docs/*VALIDATION*.md
 .coverage
 .tox/
+
+# Keep local attribution notes outside the public package.
+NOTICE.md
+notice.md
