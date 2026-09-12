@@ -8,9 +8,6 @@ A guided job search in **Codex or Claude Code**. You answer questions and review
 
 ## The flow at a glance
 
-<details>
-<summary>Show the six-step flowchart</summary>
-
 Click the small ↗ beside a step to open its instructions.
 
 ```mermaid
@@ -23,8 +20,6 @@ flowchart TD
     F["6 · Continue later <a href='https://github.com/toughdave/job-search#coming-back-later' target='_top'>↗</a><br/>Reopen the same project"]
     A --> B --> C --> D --> E --> F
 ```
-
-</details>
 
 ## First time: step by step
 
