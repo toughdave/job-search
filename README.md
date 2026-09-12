@@ -6,21 +6,18 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 ## The flow at a glance
 
-**Click a step to jump to its instructions.**
+Click the small ↗ beside a step to open its instructions.
 
-<table>
-<tr><td align="center"><a href="#1-open-codex-or-claude-code"><strong>1 · Open your AI app</strong><br/>Choose a local project</a></td></tr>
-<tr><td align="center">↓</td></tr>
-<tr><td align="center"><a href="#2-add-your-resume-before-sending"><strong>2 · Add your resume</strong><br/>Or begin without one</a></td></tr>
-<tr><td align="center">↓</td></tr>
-<tr><td align="center"><a href="#3-copy-the-start-message-then-press-send"><strong>3 · Copy the start message</strong><br/>Click here to see what to send</a></td></tr>
-<tr><td align="center">↓</td></tr>
-<tr><td align="center"><a href="#4-let-the-ai-set-up-then-answer-its-questions"><strong>4 · Answer questions</strong><br/>AI handles the setup and saves answers</a></td></tr>
-<tr><td align="center">↓</td></tr>
-<tr><td align="center"><a href="#5-review-the-first-useful-result"><strong>5 · Review the draft</strong><br/>Ask for corrections</a></td></tr>
-<tr><td align="center">↓</td></tr>
-<tr><td align="center"><a href="#coming-back-later"><strong>Next visit · Same project and chat</strong><br/>Continue my job search.</a></td></tr>
-</table>
+```mermaid
+flowchart TD
+    A["1 · Open your AI app <a href='https://github.com/toughdave/job-search#1-open-codex-or-claude-code' target='_top'>↗</a><br/>Choose a local project"]
+    B["2 · Add your resume <a href='https://github.com/toughdave/job-search#2-add-your-resume-before-sending' target='_top'>↗</a><br/>Or begin without one"]
+    C["3 · Copy the start message <a href='https://github.com/toughdave/job-search#3-copy-the-start-message-then-press-send' target='_top'>↗</a><br/>Send it once to start"]
+    D["4 · Answer questions <a href='https://github.com/toughdave/job-search#4-let-the-ai-set-up-then-answer-its-questions' target='_top'>↗</a><br/>AI handles the setup"]
+    E["5 · Review the draft <a href='https://github.com/toughdave/job-search#5-review-the-first-useful-result' target='_top'>↗</a><br/>Ask for corrections"]
+    F["Next visit · Same project <a href='https://github.com/toughdave/job-search#coming-back-later' target='_top'>↗</a><br/>Continue my job search."]
+    A --> B --> C --> D --> E --> F
+```
 
 ## First time: step by step
 
@@ -28,13 +25,48 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 Sign in to a version that can work with files on your computer. Start a conversation in a **dedicated local project/folder**, such as **My Job Search**. Here, “project” simply means the folder the AI is working in.
 
-| Your app | Where to start |
-| --- | --- |
-| Codex app | Open or create a local project using a folder for this job search, then start a conversation there. |
-| Claude desktop | Open **Code**, select **Local**, choose your job-search folder, then start a conversation. |
-| Codex or Claude Code in a terminal/editor | Start it in the folder you want to use for this job search. |
-
 Use a local session, rather than an ordinary browser chat. You do not need to download this repository or create the skill's internal folders yourself.
+
+**Follow the instructions for your app, then check permissions below.**
+
+#### Codex: choose or create your project
+
+1. Above the message box, click **Choose project**.
+
+   ![Codex message box with Choose project above it and the permission selector at the lower left.](docs/images/codex-choose-project.png)
+
+2. Select your existing **My Job Search** project, or open **Create project** to make one.
+3. In **Create project**, enter a name such as **My Job Search**. Under **Source folders**, choose **Add a folder on this computer**, then click **Add**.
+
+   <img src="docs/images/codex-create-project.png" alt="Codex Create project dialog with Project name, Source folders, Add a folder on this computer, Add, and Create project controls." width="620" />
+
+4. In the folder picker, select a folder dedicated to this search. To make one, use **New folder** if available. Otherwise, create **My Job Search** in Documents using File Explorer (Windows) or Finder (Mac), then select it in the picker. Creating a project name alone does not select a disk folder.
+5. Confirm the folder selection, then click **Create project**. Make sure that project is selected above the message box before sending anything.
+
+These are real Codex screenshots supplied for this guide. Labels can vary by version. The **Full access** label in the first image shows that session's setting; it is not a required choice. See the [Codex project guide](https://learn.chatgpt.com/docs/projects).
+
+#### Claude Code: choose your folder
+
+1. Open Claude desktop's **Code** tab and select **Local**.
+2. Click **Select folder**. Choose a dedicated **My Job Search** folder. To start with a new folder, create it in your computer's file manager first, then select it.
+3. Confirm the selected folder and use the message box in that local session. The screenshots above show Codex; Claude's controls look different. See the [official Claude setup walkthrough](https://code.claude.com/docs/en/desktop-quickstart#start-your-first-session).
+
+Using a terminal or editor instead? Open the same dedicated folder as the working directory before starting Codex or Claude Code.
+
+#### Allow the AI to read and save files
+
+**Choose a mode that can edit files.** The skill needs to read your resume, create folders, save records and run its installation and document tools. These permissions are controlled by your app, separately from model selection.
+
+| App | Recommended starting choice | What to expect |
+| --- | --- | --- |
+| Codex | Open the permission selector near the message box's lower left. Choose project/workspace read-and-write access with approvals when needed; some versions call this **Auto**. | Approve requested installation, network access and any extra folder access. Read-only access cannot save your search. |
+| Claude Code | Use the mode selector next to Send. Choose **Accept edits** (older versions: **Auto accept edits**). | File edits and common folder operations can proceed; other commands can still need approval. **Manual** also works if you approve each change. Leave **Plan** mode when ready to install and save. |
+
+**About broader access:** Codex's **Full access** removes the usual sandbox restrictions and approval prompts, so it grants more than this project needs. It is optional, not an installation prerequisite. Claude's **Bypass permissions** is also unnecessary here; Anthropic recommends it only in isolated containers or virtual machines. Organization policies can limit the available choices. Sources: [Codex permissions](https://learn.chatgpt.com/docs/agent-approvals-security#defaults-and-recommendations), [Claude permission modes](https://code.claude.com/docs/en/desktop#choose-a-permission-mode).
+
+If the AI needs a separate private records folder outside the selected project, approve that **specific folder** when asked, or give it another writable location. Keep candidate records outside the downloaded public repository and installed skill. Protected skill folders can still require installation approval even when ordinary project files are writable.
+
+**Before continuing:** the correct project is selected, file editing is allowed, and you are ready to approve the installation if asked. The AI handles the remaining folders and files. On later visits, check the selected project and permission mode again if saving stops working.
 
 ### 2. Add your resume before sending
 
