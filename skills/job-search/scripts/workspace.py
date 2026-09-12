@@ -194,10 +194,10 @@ def validate(state, root):
 def load(root):
     root=checked_root(root)
     marker=inside(root,'.job-search-workspace.json'); path=inside(root,'.job-search/state.json')
-    require(marker.is_file() and path.is_file(),'Not an initialized Job Search Starter Kit workspace. Refusing to adopt existing files.')
+    require(marker.is_file() and path.is_file(),'Not an initialized Job Search workspace. Refusing to adopt existing files.')
     meta=json.loads(marker.read_text(encoding='utf-8'))
     state=json.loads(path.read_text(encoding='utf-8'))
-    require(meta.get('format')=='job-search-starter-kit' and meta.get('workspace_id')==state.get('workspace_id'),'Workspace identity mismatch.')
+    require(meta.get('format') in ('job-search','job-search-starter-kit') and meta.get('workspace_id')==state.get('workspace_id'),'Workspace identity mismatch.')
     return validate(state,root)
 
 def initialize(value):
@@ -211,7 +211,7 @@ def initialize(value):
     for bucket in BUCKETS: (root/bucket).mkdir()
     ts=now(); wid=str(uuid.uuid4())
     state={'schema_version':SCHEMA,'workspace_id':wid,'revision':0,'created_at':ts,'updated_at':ts,'profile':{'facts':[],'preferences':{}},'sources':[],'interviews':[],'decisions':[],'applications':[],'runs':[],'pending_actions':[],'integrations':{},'session':{'next_action':'Read the supplied resume and ask the next useful question.'},'history':[]}
-    atomic_json(root/'.job-search-workspace.json',{'format':'job-search-starter-kit','workspace_id':wid})
+    atomic_json(root/'.job-search-workspace.json',{'format':'job-search','workspace_id':wid})
     atomic_json(root/'.job-search/state.json',state)
     (root/'.gitignore').write_text('*\n',encoding='utf-8')
     status_note(root,state)

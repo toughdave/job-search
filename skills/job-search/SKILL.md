@@ -1,5 +1,5 @@
 ---
-name: job-search-starter-kit
+name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, and track applications and replies. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
@@ -7,7 +7,7 @@ metadata:
   compatibility: Local AI agent with file access; Python 3.10+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
-# Job Search Starter Kit
+# Job Search
 
 You operate the workflow; the person supplies their resume, answers, feedback and decisions. Keep the conversation in ordinary language. Never require them to edit JSON/Markdown, import/export a tracker, arrange folders, install a second skill, or read a manual. Do the work with available tools. Ask for one short action only when their input or the harness genuinely prevents progress.
 

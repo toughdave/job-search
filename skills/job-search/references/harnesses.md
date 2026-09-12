@@ -4,11 +4,11 @@ Keep one portable skill body. Use actual tools exposed by the current host; do n
 
 ## Codex
 
-Project skills use `.agents/skills`; Codex CLI/IDE allow `$job-search-starter-kit`, and matching natural-language prompts can select it implicitly. This release does not install globally or change the user's existing AGENTS.md or memory. Use the supported local file/browser/document tools. Native goal tools may be available; call them only when the candidate explicitly asks for a goal, preserve any active unrelated goal, and check the reported state. `/goal` is a host command, not ordinary text the skill can silently activate everywhere.
+Project skills use `.agents/skills`; Codex CLI/IDE allow `$job-search`, and matching natural-language prompts can select it implicitly. This release does not install globally or change the user's existing AGENTS.md or memory. Use the supported local file/browser/document tools. Native goal tools may be available; call them only when the candidate explicitly asks for a goal, preserve any active unrelated goal, and check the reported state. `/goal` is a host command, not ordinary text the skill can silently activate everywhere.
 
 ## Claude Code
 
-Project skills use `.claude/skills`; invoke `/job-search-starter-kit` or a matching request. Use Read/Write/Edit/shell and available browsing/document tools within permissions. The skill uses only standard Agent Skills frontmatter; it does not depend on Claude-specific dynamic injection or a forked skill context. Keep candidate questions in the main conversation. Current versions document `/goal` as a host feature; when needed, provide one exact goal message or use an actually exposed supported mechanism. Do not claim a goal is active simply because the skill mentions it.
+Project skills use `.claude/skills`; invoke `/job-search` or a matching request. Use Read/Write/Edit/shell and available browsing/document tools within permissions. The skill uses only standard Agent Skills frontmatter; it does not depend on Claude-specific dynamic injection or a forked skill context. Keep candidate questions in the main conversation. Current versions document `/goal` as a host feature; when needed, provide one exact goal message or use an actually exposed supported mechanism. Do not claim a goal is active simply because the skill mentions it.
 
 ## Goal versus schedule
 

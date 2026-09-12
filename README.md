@@ -1,4 +1,4 @@
-# Job Search Starter Kit
+# Job Search
 
 An AI skill that runs your job search through a conversation. Give it your resume, answer a few questions, and let it organize the work.
 
@@ -6,7 +6,7 @@ An AI skill that runs your job search through a conversation. Give it your resum
 
 Paste this into **Codex or Claude Code**, with your resume attached or its file path supplied:
 
-> Install the job-search-starter-kit skill from https://github.com/toughdave/job-search-starter-kit for this project, then use it to start my job search. Read my resume, ask one short question at a time, and create a separate private workspace for my search. Handle the files for me. Work toward my first suitable application ready for review.
+> Install the job-search skill from https://github.com/toughdave/job-search for this project, then use it to start my job search. Read my resume, ask one short question at a time, and create a separate private workspace for my search. Handle the files for me. Work toward my first suitable application ready for review.
 
 The AI may need you to approve installation or choose a writable folder. It should read this repository's [INSTALL.md](INSTALL.md), verify installation, and begin. If a fresh turn is needed for skill discovery, it should give you one short message to send. You do not need to fill out templates or edit tracking files.
 
@@ -28,10 +28,10 @@ The skill asks you for decisions, missing personal facts, and required approvals
 If you prefer a terminal, with Node.js 22.20 or newer:
 
 ```sh
-npx skills@1.5.26 add toughdave/job-search-starter-kit --skill job-search-starter-kit --agent codex claude-code --copy -y
+npx skills@1.5.26 add toughdave/job-search --skill job-search --agent codex claude-code --copy -y
 ```
 
-This installs into the current project. Add `--global` only if you intentionally want it available in all projects. Then say “Use job-search-starter-kit with my resume.” Codex CLI also supports `$job-search-starter-kit`; Claude Code supports `/job-search-starter-kit`.
+This installs into the current project. Add `--global` only if you intentionally want it available in all projects. Then say “Use job-search with my resume.” Codex CLI also supports `$job-search`; Claude Code supports `/job-search`.
 
 ## Availability
 
@@ -41,4 +41,4 @@ This is a workflow assistant, not a guarantee of interviews or employment. You r
 
 ## For maintainers
 
-The reusable skill is in [skills/job-search-starter-kit](skills/job-search-starter-kit/SKILL.md). The state helper uses Python 3.10+ with no third-party packages. Document export dependencies are installed only inside a private workspace environment. [Design](docs/DESIGN.md) · [Tests](tests) · [Attribution](NOTICE.md).
+The reusable skill is in [skills/job-search](skills/job-search/SKILL.md). The state helper uses Python 3.10+ with no third-party packages. Document export dependencies are installed only inside a private workspace environment. [Design](docs/DESIGN.md) · [Tests](tests) · [Attribution](NOTICE.md).

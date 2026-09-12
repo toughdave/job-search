@@ -1,4 +1,0 @@
-interface:
-  display_name: "Job Search Starter Kit"
-  short_description: "Your job search, guided through a conversation"
-  default_prompt: "Use $job-search-starter-kit with my resume, ask one short question at a time, and handle the files while preparing my first suitable application for review."
