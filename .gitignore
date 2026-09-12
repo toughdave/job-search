@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+private/
+workspaces/
+test-output/
+node_modules/
+.agents/
+.claude/
+.codex/
+skills-lock.json
+*.log
+.env
+.env.*

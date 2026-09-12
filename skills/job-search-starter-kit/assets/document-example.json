@@ -1,0 +1,16 @@
+{
+  "kind": "resume",
+  "page_size": "Letter",
+  "name": {"text": "Alex Example", "fact_ids": ["identity"]},
+  "contact": {"text": "Example City | alex@example.com", "fact_ids": ["contact"]},
+  "sections": [
+    {"heading": "Summary", "paragraphs": [{"text": "Office administrator with experience coordinating appointments and helping customers.", "fact_ids": ["work"]}]},
+    {"heading": "Experience", "entries": [
+      {"title": {"text": "Office Administrator | Jan 2023 - Dec 2025", "fact_ids": ["work"]}, "subtitle": {"text": "Example Services (fictional) | Example City", "fact_ids": ["work"]}, "bullets": [
+        {"text": "Coordinated appointments and responded to customer enquiries.", "fact_ids": ["work"]},
+        {"text": "Maintained records and prepared weekly scheduling updates.", "fact_ids": ["work"]}
+      ]}
+    ]},
+    {"heading": "Education", "paragraphs": [{"text": "Business Administration Diploma | Example College | 2022", "fact_ids": ["education"]}]}
+  ]
+}
