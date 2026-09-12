@@ -146,6 +146,8 @@ If it cannot search the web, it may ask for a job posting. If a required fact or
 
 ## Summon the skill
 
+**Updating an earlier installation?** Send: `Update job-search from https://github.com/toughdave/job-search. Preserve my private records and any local customizations, then continue my search.` The AI should reconcile existing answers with the new checklist.
+
 Once installed, open the **same local project**. Use the message box in your AI app, not your computer's terminal:
 
 | App | How to summon `job-search` |
