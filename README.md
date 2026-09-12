@@ -6,7 +6,7 @@ An AI skill that runs your job search through a conversation. Give it your resum
 
 Paste this into **Codex or Claude Code**, with your resume attached or its file path supplied:
 
-> Install the job-search skill from https://github.com/toughdave/job-search for this project, then use it to start my job search. Read my resume, ask one short question at a time, and create a separate private workspace for my search. Handle the files for me. Work toward my first suitable application ready for review.
+> Install https://github.com/toughdave/job-search for this project. Use job-search with my resume, handle the setup, and ask one question at a time. Set a goal to prepare my first suitable application for review.
 
 The AI may need you to approve installation or choose a writable folder. It should read this repository's [INSTALL.md](INSTALL.md), verify installation, and begin. If a fresh turn is needed for skill discovery, it should give you one short message to send. You do not need to fill out templates or edit tracking files.
 

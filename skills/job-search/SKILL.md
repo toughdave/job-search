@@ -23,7 +23,7 @@ On every return, read current state from disk and any pending work before decidi
 
 Read [interview and evidence](references/interview.md). Inspect the supplied resume first. Ask **one short question at a time**; use a recommendation for process choices and never suggest a personal fact as the answer. Answer questions yourself when the supplied files or environment establish the fact. Save each meaningful answer or correction immediately, read it back from disk, then continue. Do not wait until the end to save an interview.
 
-Establish target work, country/region and essential constraints; ask about missing evidence when it affects a decision. Let a candidate without a resume describe their most recent work or study. Begin one useful fit check or draft as soon as enough is known. Continue the interview only where the next task needs it. Do not conduct an endless “complete your whole profile first” interview.
+Establish target work, country/region and essential constraints; ask about missing evidence when it affects a decision. One question means one decision: ask about target work first, then location in a later turn if still unknown. Do not bundle “what role and location?” into a single question. Let a candidate without a resume describe their most recent work or study. Begin one useful fit check or draft as soon as enough is known. Continue the interview only where the next task needs it. Do not conduct an endless “complete your whole profile first” interview.
 
 ## Do the search and application work
 
