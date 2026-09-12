@@ -56,7 +56,7 @@ Use a local session, rather than an ordinary browser chat. You do not need to do
 4. In the folder picker, select a folder dedicated to this search. To make one, use **New folder** if available. Otherwise, create **My Job Search** in Documents using File Explorer (Windows) or Finder (Mac), then select it in the picker. Creating a project name alone does not select a disk folder.
 5. Confirm the folder selection, then click **Create project**. Make sure that project is selected above the message box before sending anything.
 
-These are real Codex screenshots supplied for this guide. Labels can vary by version. The **Full access** label in the first image shows that session's setting; it is not a required choice. See the [Codex project guide](https://learn.chatgpt.com/docs/projects).
+These are real Codex screenshots supplied for this guide. Labels can vary by version. The **Full access** setting shown is the choice used in this walkthrough. See the [Codex project guide](https://learn.chatgpt.com/docs/projects).
 
 #### Claude Code: choose your folder
 
@@ -68,14 +68,22 @@ Using a terminal or editor instead? Open the same dedicated folder as the workin
 
 #### Allow the AI to read and save files
 
-**Choose a mode that can edit files.** The skill needs to read your resume, create folders, save records and run its installation and document tools. These permissions are controlled by your app, separately from model selection.
+**For this walkthrough, select Full access in Codex or Auto in Claude Code**, matching the screenshots below. The skill needs to read your resume, create folders, save records and run its installation and document tools. These settings are controlled by your app, separately from model selection.
 
-| App | Recommended starting choice | What to expect |
+| App | Select this setting | What it allows |
 | --- | --- | --- |
-| Codex | Open the permission selector near the message box's lower left. Choose project/workspace read-and-write access with approvals when needed. Current Windows documentation calls the selector **Ask for approval**; other versions use **Auto** or permission profiles. | Approve requested installation, network access and any extra folder access. Read-only access cannot save your search. |
-| Claude Code | Use the mode selector next to Send. Choose **Accept edits** (older versions: **Auto accept edits**). | File edits and common folder operations can proceed; other commands can still need approval. **Manual** also works if you approve each change. Leave **Plan** mode when ready to install and save. |
+| Codex | Click the permission label at the lower left of the message box, then select **Full access**. Check that **Full access** appears beside the shield icon. | Unrestricted access to the internet and files on your computer, including files outside the selected project. |
+| Claude Code | Click the mode label at the lower left of the message box, then select **Auto**. Check that **Auto** appears below the message box. | Claude handles permission decisions using background safety checks. Some actions can still require your input. |
 
-**About broader access:** Codex's **Full access** removes the usual sandbox restrictions and approval prompts, so it grants more than this project needs. It is optional, not an installation prerequisite. Claude's **Bypass permissions** is also unnecessary here; Anthropic recommends it only in isolated containers or virtual machines. Organization policies can limit the available choices. Sources: [Codex permissions](https://learn.chatgpt.com/docs/agent-approvals-security#defaults-and-recommendations), [Claude permission modes](https://code.claude.com/docs/en/desktop#choose-a-permission-mode).
+**Codex: select Full access**
+
+![Codex permission dropdown showing Ask for approval, Approve for me, and Full access, with Full access selected.](docs/images/codex-permissions.png)
+
+**Claude Code: select Auto**
+
+![Claude Code mode dropdown showing Auto, Manual, Accept edits, Plan, and Bypass permissions, with Auto selected.](docs/images/claude-permissions.png)
+
+These screenshots show the guide author's current desktop apps. **Full access grants access beyond your project folder; Claude's Auto keeps automatic safety checks.** These are the settings chosen for this walkthrough. More restrictive modes can also run the skill with your approvals. If a setting is unavailable, check your app version or organization policy. Sources: [Codex permissions](https://learn.chatgpt.com/docs/agent-approvals-security), [Claude permission modes](https://code.claude.com/docs/en/desktop#choose-a-permission-mode).
 
 If the AI needs a separate private records folder outside the selected project, approve that **specific folder** when asked, or give it another writable location. Keep candidate records outside the downloaded public repository and installed skill. Protected skill folders can still require installation approval even when ordinary project files are writable.
 
