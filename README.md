@@ -2,7 +2,7 @@
 
 Your job search, guided through a conversation in **Codex or Claude Code**. You supply your experience and decisions. The AI organizes the files, asks questions, and prepares applications for your review.
 
-**[First time: start here](#first-time-step-by-step)** · **[Already installed](#already-installed)** · **[Coming back later](#coming-back-later)** · **[Need help?](#if-something-stops-you)**
+**[First time: start here](#first-time-step-by-step)** · **[Summon the skill](#summon-the-skill)** · **[Coming back later](#coming-back-later)** · **[Need help?](#if-something-stops-you)**
 
 **Share the short guide:** [PDF](docs/job-search-guide.pdf) · [PowerPoint slides](docs/job-search-guide.pptx). Both include app download links, project screenshots and the exact first message. See the [final installation audit](docs/FINAL-AUDIT.md) for tested behavior and limits.
 
@@ -42,44 +42,40 @@ Use a local session, rather than an ordinary browser chat. You do not need to do
 
 **Follow the instructions for your app, then check permissions below.**
 
-#### Codex: choose or create your project
+#### a. Choose your project
 
-1. Above the message box, click **Choose project**.
+**Codex:** above the message box, click **Choose project**. Select your existing **My Job Search** project, or open **Create project** to make one.
 
-   ![Codex message box with Choose project above it and the permission selector at the lower left.](docs/images/codex-choose-project.png)
+![Codex message box with Choose project above it and the permission selector at the lower left.](docs/images/codex-choose-project.png)
 
-2. Select your existing **My Job Search** project, or open **Create project** to make one.
-3. In **Create project**, enter a name such as **My Job Search**. Under **Source folders**, choose **Add a folder on this computer**, then click **Add**.
+**Claude Code:** open the **Code** tab and select **Local**, then choose the folder as described below.
 
-   <img src="docs/images/codex-create-project.png" alt="Codex Create project dialog with Project name, Source folders, Add a folder on this computer, Add, and Create project controls." width="620" />
+#### b. Select or create your folder
 
-4. In the folder picker, select a folder dedicated to this search. To make one, use **New folder** if available. Otherwise, create **My Job Search** in Documents using File Explorer (Windows) or Finder (Mac), then select it in the picker. Creating a project name alone does not select a disk folder.
-5. Confirm the folder selection, then click **Create project**. Make sure that project is selected above the message box before sending anything.
+**Codex:** in **Create project**, enter **My Job Search**. Under **Source folders**, choose **Add a folder on this computer**, then click **Add**.
 
-These are real Codex screenshots supplied for this guide. Labels can vary by version. The **Full access** setting shown is the choice used in this walkthrough. See the [Codex project guide](https://learn.chatgpt.com/docs/projects).
+<img src="docs/images/codex-create-project.png" alt="Codex Create project dialog with Project name, Source folders, Add a folder on this computer, Add, and Create project controls." width="620" />
 
-#### Claude Code: choose your folder
+- Select a dedicated folder in the folder picker. To make one, use **New folder** if available, or create **My Job Search** in Documents with File Explorer (Windows) or Finder (Mac) first.
+- Confirm the folder selection, then click **Create project**. Check that project is selected above the message box. A project name alone does not select a disk folder.
 
-1. Open Claude desktop's **Code** tab and select **Local**.
-2. Click **Select folder**. Choose a dedicated **My Job Search** folder. To start with a new folder, create it in your computer's file manager first, then select it.
-3. Confirm the selected folder and use the message box in that local session. The screenshots above show Codex; Claude's controls look different. See the [official Claude setup walkthrough](https://code.claude.com/docs/en/desktop-quickstart#start-your-first-session).
+**Claude Code:** click **Select folder**, choose your **My Job Search** folder and confirm. Create the folder in your file manager first if needed. See the [Claude setup walkthrough](https://code.claude.com/docs/en/desktop-quickstart#start-your-first-session).
 
-Using a terminal or editor instead? Open the same dedicated folder as the working directory before starting Codex or Claude Code.
+The screenshots above show Codex. Labels can vary by version; see the [Codex project guide](https://learn.chatgpt.com/docs/projects). Using a terminal or editor? Open the dedicated folder as the working directory before starting the AI.
 
-#### Allow the AI to read and save files
+<a name="allow-the-ai-to-read-and-save-files"></a>
 
-**For this walkthrough, select Full access in Codex or Auto in Claude Code**, matching the screenshots below. The skill needs to read your resume, create folders, save records and run its installation and document tools. These settings are controlled by your app, separately from model selection.
+The skill needs to read your resume, create folders, save records and run its tools. Choose the setting below for your app; these settings are separate from model selection.
 
-| App | Select this setting | What it allows |
-| --- | --- | --- |
-| Codex | Click the permission label at the lower left of the message box, then select **Full access**. Check that **Full access** appears beside the shield icon. | Unrestricted access to the internet and files on your computer, including files outside the selected project. |
-| Claude Code | Click the mode label at the lower left of the message box, then select **Auto**. Check that **Auto** appears below the message box. | Claude handles permission decisions using background safety checks. Some actions can still require your input. |
+#### c. Codex: Full access
 
-**Codex: select Full access**
+Click the permission label at the lower left of the message box, then select **Full access**. Check that **Full access** appears beside the shield icon. This allows unrestricted internet and file access, including files outside the selected project.
 
 ![Codex permission dropdown showing Ask for approval, Approve for me, and Full access, with Full access selected.](docs/images/codex-permissions.png)
 
-**Claude Code: select Auto**
+#### d. Claude Code: Auto
+
+Click the mode label at the lower left of the message box, then select **Auto**. Check that **Auto** appears below the message box. Claude handles permission decisions using background safety checks; some actions can still require your input.
 
 ![Claude Code mode dropdown showing Auto, Manual, Accept edits, Plan, and Bypass permissions, with Auto selected.](docs/images/claude-permissions.png)
 
@@ -136,26 +132,35 @@ If it cannot search the web, it may ask for a job posting. If a required fact or
 
 **That is the first-time process. The sections below are for later visits or optional help.**
 
-## Already installed
+<a name="already-installed"></a>
 
-Skip installation. Open the **same local project**, add your resume or its location if you have not already supplied it, and send:
+## Summon the skill
+
+Once installed, open the **same local project**. Use the message box in your AI app, not your computer's terminal:
+
+| App | How to summon `job-search` |
+| --- | --- |
+| Codex / ChatGPT desktop | Type `@`, then select **job-search** from the skill picker. If your Codex composer offers a `$` skill picker, select **job-search** there. |
+| Codex CLI or IDE extension | Type `$job-search`, select the matching skill if a menu appears, then add your request. |
+| Claude Code | Type `/job-search`, select the matching skill if a menu appears, then add your request. |
+
+After selecting the skill, add **Start my search** or **Continue my job search**, then send. For a first search, supply your resume or its location if you have not already done so. Sources: [OpenAI skill invocation](https://learn.chatgpt.com/docs/build-skills#how-chatgpt-and-codex-use-skills), [Claude Code skills](https://code.claude.com/docs/en/skills).
+
+**No matching skill in the picker?** Send `Use job-search.` If it cannot find the installation, use [Need help?](#if-something-stops-you). A shortcut works only after the app has loaded the installed skill; it does not install it.
+
+<a name="coming-back-later"></a>
+
+## 6. Coming back later
+
+**a. Reopen** the same project and conversation you used before.
+
+**b. Summon** the skill using your app's option [above](#summon-the-skill), then add:
 
 ```text
-Use job-search.
+Continue my job search.
 ```
 
-If the AI cannot find the skill, see [Need help?](#if-something-stops-you). If your search is already set up, use the returning message below instead.
-
-## Coming back later
-
-1. Reopen the **same project and conversation** you used before.
-2. Send this message:
-
-   ```text
-   Continue my job search.
-   ```
-
-3. The AI should read your saved progress and continue the next action. Answer any new question or review the next result.
+**c. Continue** from the saved progress. Answer any new question or review the next result.
 
 You do not normally reinstall or attach the same resume again. Supply a new resume when it changes. If a new conversation cannot find your records, provide the private workspace location from step 4 and say `Resume my existing search at this location; do not start over.` Records on one computer do not automatically appear on another.
 
@@ -185,14 +190,7 @@ Use this alternative only if you prefer a terminal. Run it in your chosen job-se
 npx skills@1.5.26 add toughdave/job-search --skill job-search --agent codex claude-code --copy -y
 ```
 
-This installs project copies for both apps. Then follow [Already installed](#already-installed). You can also explicitly invoke the skill in the app's message box:
-
-| App | Message |
-| --- | --- |
-| Codex CLI/IDE | `$job-search Use my resume to start my search.` |
-| Claude Code | `/job-search Use my resume to start my search.` |
-
-The natural-language messages above avoid needing to remember these shortcuts. Installing in one project does not make the skill available in every project.
+This installs project copies for both apps. Then follow [Summon the skill](#summon-the-skill). Installing in one project does not make the skill available in every project.
 
 </details>
 
