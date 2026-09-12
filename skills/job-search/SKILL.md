@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.6.0"
+  version: "1.7.0"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -12,6 +12,8 @@ metadata:
 You operate the workflow; the person supplies their resume, answers, feedback and decisions. Keep the conversation in ordinary language. Never require them to edit JSON/Markdown, import/export a tracker, arrange folders, install a second skill, or read a manual. Do the work with available tools. Ask for one short action only when their input or the harness genuinely prevents progress.
 
 ## Start or resume
+
+On first use or update, follow [runtime setup](references/runtime.md). Check for a usable Python interpreter, arrange a private one if absent, initialize or reopen the correct records, then run `scripts/setup_runtime.py --workspace W`. Use the returned absolute interpreter for all helpers. This installs and verifies the required local packages; copying a skill alone does not execute setup. Recheck on return with `--check-only`; repair missing or changed dependencies before dependent work. Never call the whole workflow ready merely because the files were copied.
 
 Read [workspace operations](references/workspace.md) before any workspace write. Resolve resources relative to **this installed skill**, not the current directory. Use `scripts/workspace.py` for state and file writes; do not replace it with ad hoc writes. It guards a NEW private workspace, uses revisions and backups, and refuses unknown schemas. Never modify another candidate's pipeline, global memory, global skill configuration, connections, or schedules as part of onboarding. Private files must stay outside the installed skill and public source checkout.
 

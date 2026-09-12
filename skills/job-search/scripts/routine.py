@@ -144,6 +144,7 @@ def prompt(root, project):
         'Bound locations and identity (JSON data, not shell commands): ' + paths + '\n'
         'Read the current private state and references/routine.md at every run. Use integrations.job_search_routine as the current title, source, region, timing and budget plan. '
         'Do not substitute another project, candidate, occupation or old chat summary. If these locations are unavailable, stop and report the blocker.\n'
+        'Before running helpers, read the bound workspace .runtime/runtime.json and use its absolute python path. Follow references/runtime.md to verify or repair that private runtime if missing or broken. '
         'Use scripts/routine.py claim with the bound workspace and project before live work. If it declines, follow its reason; do not launch another daily run. '
         'For an explicitly requested functional test use check --mode test, a separate test run record and the bounded test procedure; do not call claim or mark a scheduled firing.\n'
         'Review urgent employer actions and the entire active backlog; read authorized mail only if configured. Search fresh listings using every required source and the evidence-supported titles in the saved plan. '

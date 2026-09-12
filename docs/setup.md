@@ -4,7 +4,7 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 **[First time: start here](#first-time-step-by-step)** · **[Summon the skill](#summon-the-skill)** · **[Coming back later](#coming-back-later)** · **[Daily search](#your-weekday-morning-search)** · **[Need help?](#if-something-stops-you)**
 
-**Share the short guide:** [PDF](job-search-guide.pdf) · [PowerPoint slides](job-search-guide.pptx). Both include app download links, project screenshots, the exact first message and daily-search setup. See the [final installation audit](FINAL-AUDIT.md) for tested behavior and limits.
+**Share the short guide:** [PDF](job-search-guide.pdf) · [PowerPoint slides](job-search-guide.pptx). Both include app download links, project screenshots, the exact first message and daily-search setup.
 
 ## First time: step by step
 
@@ -96,6 +96,10 @@ Then use job-search to start my search.
 One-question pacing, waiting for your answers, saving progress and managing files are built into the skill. You do not need to repeat those instructions. A native goal is optional. During setup, the AI also offers an optional weekday morning search.
 
 ### 4. Let the AI set up, then answer its questions
+
+**The AI handles the software setup too.** It checks Python, installs missing document and timezone packages in a private environment, and verifies that documents can be created and PDFs rendered. If Python is missing, it arranges a private runtime. You may see a download or approval request. Node is only needed for the optional terminal installer; the AI can install the skill without it.
+
+The terminal command below copies the skill. Summoning it afterward starts these setup checks. If a required tool cannot be installed, the AI explains the specific next action and keeps unfinished setup visible.
 
 The AI should check the installation, read your resume, create a separate private place for your records, and ask one useful question at a time. It should tell you where it saved your search. If it needs an installation approval, a writable location, or a restart, follow that specific instruction before continuing.
 
@@ -210,13 +214,13 @@ This installs project copies for both apps. Then follow [Summon the skill](#summ
 </details>
 
 <details>
-<summary><strong>How this works, documentation and validation</strong></summary>
+<summary><strong>How this works</strong></summary>
 
 The [installing instructions](../INSTALL.md) are for the AI. The reusable skill is in [skills/job-search](../skills/job-search/SKILL.md). It keeps private records outside the installed skill and public repository. Installation does not alter another candidate's pipeline.
 
 The state helper uses Python 3.9+; document tools may need extra packages or a renderer. The AI checks these and handles supported local setup. Other AI tools need separate capability checks. No hiring outcome is guaranteed.
 
-[Validation and limitations](VALIDATION.md) · [Design](DESIGN.md) · [Tests](../tests) · [Attribution](../NOTICE.md)
+[Attribution](../NOTICE.md)
 
 Official instructions checked for this guide: [Codex skills](https://learn.chatgpt.com/docs/build-skills), [local projects](https://learn.chatgpt.com/docs/projects), [Claude Code desktop setup](https://code.claude.com/docs/en/desktop-quickstart), [Claude Code skills](https://code.claude.com/docs/en/skills), and [GitHub section links](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links). App labels and attachment methods can vary by version.
 

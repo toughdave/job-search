@@ -115,6 +115,10 @@ You do not need to add instructions about asking one question at a time or manag
 
 ### 4. Let the AI set up, then answer its questions
 
+**The AI handles the software setup too.** It checks Python, installs missing document and timezone packages in a private environment, and verifies that documents can be created and PDFs rendered. If Python is missing, it arranges a private runtime. You may see a download or approval request. Node is only needed for the optional terminal installer; the AI can install the skill without it.
+
+The terminal command below copies the skill. Summoning it afterward starts these setup checks. If a required tool cannot be installed, the AI explains the specific next action and keeps unfinished setup visible.
+
 The AI saves your records in a private location and tells you where. It asks **one question at a time**, reusing information you have already supplied.
 
 The conversation covers the details needed for your search:
@@ -217,4 +221,4 @@ Then summon the skill above. Opening the GitHub link alone does not install it.
 
 </details>
 
-[Full walkthrough](docs/setup.md) · [Skill instructions](skills/job-search/SKILL.md) · [Audit and limitations](docs/FINAL-AUDIT.md) · [QA response for Claude](docs/CLAUDE-QA-RESPONSE.md) · [Design](docs/DESIGN.md)
+[Full walkthrough](docs/setup.md) · [Skill instructions](skills/job-search/SKILL.md)
