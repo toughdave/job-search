@@ -44,7 +44,10 @@ The AI must confirm it can read the file. An attachment icon alone does not prov
 Copy the complete message below into the **same message box** where you added your resume or its location:
 
 ```text
-Install https://github.com/toughdave/job-search for this project. Use job-search with my resume, handle the setup, and ask one question at a time. Set a goal to prepare my first suitable application for review.
+Install https://github.com/toughdave/job-search for this project.
+Use job-search with my resume and handle the setup.
+Ask one question at a time.
+Set a goal: prepare my first suitable application for review.
 ```
 
 **Send this once.** It asks the AI to install and begin; you do not also need a terminal command or “Continue my job search” now. Include your resume location or no-resume line before sending if you chose that option.
@@ -74,7 +77,8 @@ If it cannot search the web, it may ask for a job posting. If a required fact or
 Skip installation. Open the **same local project**, add your resume or its location if you have not already supplied it, and send:
 
 ```text
-Use job-search with my resume. Ask one question at a time and handle the files for me.
+Use job-search with my resume.
+Ask one question at a time and handle the files for me.
 ```
 
 If the AI cannot find the skill, see [Need help?](#if-something-stops-you). If your search is already set up, use the returning message below instead.
