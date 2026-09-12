@@ -192,6 +192,8 @@ def validate(state, root):
     require(isinstance(state.get('history'),list),'History required.')
     import onboarding
     onboarding.validate(state,root)
+    import routine
+    routine.validate(state)
     return state
 
 def load(root):
@@ -238,6 +240,8 @@ def status_note(root,state):
     p.write_text(txt,encoding='utf-8')
 
 def guard_history(old,new):
+    import routine
+    routine.guard_history(old,new)
     import onboarding
     onboarding.guard_history(old,new)
     for name in ('sources','interviews','decisions'):

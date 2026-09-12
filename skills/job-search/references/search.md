@@ -31,3 +31,5 @@ Only use explicitly selected/authorized accounts. Read full relevant threads, ma
 ## End a run
 
 Record `scope`, `checks`, application IDs advanced, start/end times, `complete`/`incomplete`, and one next action. `complete` means every required check in that scope succeeded, not that the market was exhausted or the candidate was hired. Unconfigured optional email is not failure unless email was agreed as required. Persist unfinished actions so the next conversation continues rather than starts over.
+
+For recurring searches, use [daily routine](routine.md) and the generated private prompt. Claim the daily run before work. Completion must satisfy the run's saved `required_checks`, using those exact check source keys: backlog, deduplication, preparation, discovery:<source-id>, and mail when configured as required. Record a supported no-fit result under preparation when no draft is justified.

@@ -1,9 +1,9 @@
 ---
 name: job-search
-description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, and track applications and replies. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
+description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   compatibility: Local AI agent with file access; Python 3.10+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -23,7 +23,7 @@ On every return, read current state from disk and any pending work before decidi
 
 Read [project onboarding](references/onboarding.md) and [interview and evidence](references/interview.md). One-question pacing, waiting for answers, evidence gathering and file management are defaults even when invoked with only “Use job-search.” Bind the private interview to the actual selected project, verify resume intake, and run the evidence-derived checklist on every return. Never infer an attached/read resume from installation or a candidate saying yes. If no resume exists, record that answer and help build one from supported experience.
 
-Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Missing checkmarks are not proof of missing answers.
+Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Say “saved” only after a successful write and readback. In a read-only session or response simulation, do not claim anything was saved or activated. Missing checkmarks are not proof of missing answers.
 
 Cover name/contact details, location and relocation preferences, education, certifications/licences and relevant skills or CV additions using the profile guidance in onboarding. Reuse supplied details, confirm credential inventories, and preserve completed/in-progress/expired distinctions. Full street addresses and irrelevant personal data are not routine resume requirements. Save none, declined and deferred answers so they are not repeatedly requested.
 
@@ -49,7 +49,7 @@ Prepare supported application fields through final review within existing author
 
 Read [harness capabilities](references/harnesses.md) only when installing, connecting tools, setting a goal, or scheduling. A first goal should be measurable: private profile saved and one suitable application prepared for review, or an evidence-backed explanation that a required candidate decision prevents that result. Use native goal features only when the user explicitly requested a goal and the feature is available; verify activation. A goal is not a recurring schedule and does not broaden permissions.
 
-The person may authorize a recurring schedule conversationally. Ask only for missing time, timezone, scope and notification preferences; create it with the harness's supported scheduler, record its actual ID, and verify an observed scheduled run. Do not claim a timer is working from a manual test. Keep unchanged monitoring quiet unless asked otherwise. Account connections are optional and must use this candidate's own authorization.
+During onboarding, once target work and region are known, read [daily routine](references/routine.md). Propose multiple evidence-supported titles and suitable search sources, then offer one weekday search at 9 a.m. Confirm the candidate's timezone, morning window, limits and reporting preference one decision at a time. Save no/later choices and unfinished setup. Generate the complete private daily prompt and use the actual native desktop scheduler only after authorization. Use the daily claim helper to prevent duplicate or out-of-window runs; preserve interrupted work. Reuse the existing timer when changing or pausing it. A manual test does not prove scheduled execution. Accounts remain optional and candidate-authorized.
 
 ## Finish each interaction
 

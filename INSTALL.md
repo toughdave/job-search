@@ -11,3 +11,7 @@ Install and start this skill for the person; do not turn this file into a manual
 ## Updates
 
 Use the same project and explicitly update only this skill. Preserve any locally changed installed version before replacement. The distribution directory must contain no private workspace. Check the new version's state schema support before use; v1 refuses unsupported schemas rather than migrating destructively. Reopen the existing private workspace and verify its workspace ID, revision and current next action. Do not initialize again. No update may overwrite profile, Q&A, applications or files.
+
+## Optional daily routine
+
+Onboarding offers a weekday morning search; installing the package never activates a schedule. Follow `references/routine.md`. Before scheduling, verify the selected IANA timezone with the private runtime. If its timezone database is unavailable, install `requirements-routine.txt` in that runtime only. Keep the generated prompt and schedule details in the private workspace. Use the actual desktop scheduler and verify its readback; CLI installation alone does not create a timer.

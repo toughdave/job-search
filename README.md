@@ -2,9 +2,9 @@
 
 Your job search, guided through a conversation in **Codex or Claude Code**. You supply your experience and decisions. The AI organizes the files, asks questions, and prepares applications for your review.
 
-**[First time: start here](#first-time-step-by-step)** · **[Summon the skill](#summon-the-skill)** · **[Coming back later](#coming-back-later)** · **[Need help?](#if-something-stops-you)**
+**[First time: start here](#first-time-step-by-step)** · **[Summon the skill](#summon-the-skill)** · **[Coming back later](#coming-back-later)** · **[Daily search](#your-weekday-morning-search)** · **[Need help?](#if-something-stops-you)**
 
-**Share the short guide:** [PDF](docs/job-search-guide.pdf) · [PowerPoint slides](docs/job-search-guide.pptx). Both include app download links, project screenshots and the exact first message. See the [final installation audit](docs/FINAL-AUDIT.md) for tested behavior and limits.
+**Share the short guide:** [PDF](docs/job-search-guide.pdf) · [PowerPoint slides](docs/job-search-guide.pptx). Both include app download links, project screenshots, the exact first message and daily-search setup. See the [final installation audit](docs/FINAL-AUDIT.md) for tested behavior and limits.
 
 ## The flow at a glance
 
@@ -108,7 +108,7 @@ Then use job-search to start my search.
 
 **Send this once.** It asks the AI to install and begin; you do not also need a terminal command or “Continue my job search” now. Include your resume location or no-resume line before sending if you chose that option.
 
-One-question pacing, waiting for your answers, saving progress and managing files are built into the skill. You do not need to repeat those instructions. A native goal or recurring schedule is optional and can be requested later.
+One-question pacing, waiting for your answers, saving progress and managing files are built into the skill. You do not need to repeat those instructions. A native goal is optional. During setup, the AI also offers an optional weekday morning search.
 
 ### 4. Let the AI set up, then answer its questions
 
@@ -178,6 +178,24 @@ You do not normally reinstall or attach the same resume again. Supply a new resu
 
 For an independent search in a different occupation, use a new project and say `Use job-search for my new occupation.` It creates separate records and asks the relevant questions there. It must not read or reuse another project's private evidence or consent unless you explicitly ask it to copy specified material.
 
+## Your weekday morning search
+
+**a. Review the suggestions.** The AI proposes several suitable job titles and search sites from your experience and location. Keep the suggestions or tell it what to change.
+
+**b. Choose your routine.** It offers **once each weekday at 9 a.m.**, asks your timezone and confirms your preferences. You can choose another time or keep searches manual. It also confirms a morning window so missed searches do not restart at night.
+
+**c. Let the AI set it up.** It saves the daily instructions and creates the supported local scheduled task. In Codex desktop, review it in **Scheduled**. In Claude Code Desktop, review it in **Code → Routines**. If a tool is unavailable, it gives you the next simple action. No technical prompt-writing is required.
+
+**d. Check the first result.** Keep your computer awake and the desktop app running for local searches. The AI tests access and shows what it found or what needs attention. A test run and a real scheduled run are recorded separately.
+
+Each run checks unfinished applications and new listings, avoids duplicates, and prepares suitable drafts within your agreed limits. You still review applications before authorizing submission. If a site or account is unavailable, the AI records the gap and continues useful work where possible.
+
+To change it, say **“Move my daily search to 8 a.m.”**, **“Change my job titles”** or **“Pause my scheduled search.”** The AI updates the existing routine. No reinstall is needed.
+
+**Using only a terminal?** Codex CLI can prepare the routine, but activation needs the desktop scheduling interface. Claude Code's `/loop` is for a running session; use its Desktop local task for this daily workflow. Cloud tasks do not automatically have your local resume and records.
+
+Official scheduling guidance: [Codex / ChatGPT desktop](https://learn.chatgpt.com/docs/automations), [Claude Code Desktop](https://code.claude.com/docs/en/desktop-scheduled-tasks), [Claude Code CLI](https://code.claude.com/docs/en/scheduled-tasks).
+
 ## If something stops you
 
 | What happened | What to do |
@@ -191,7 +209,7 @@ For an independent search in a different occupation, use a new project and say `
 
 Once installed and available, the skill instructs the AI to manage setup, saved answers, evidence, job screening, document versions and application records. **Sharing or opening the GitHub link alone does not install or start it**—send the first-time message in the AI app.
 
-The AI still needs your real answers and your app's file, web and document capabilities. It may need approval for access or installation. Accounts, recurring searches and final submissions are not activated by installation. Later, you can ask for a regular search schedule; the AI must check what your app supports and confirm the actual setup.
+The AI still needs your real answers and your app's file, web and document capabilities. It may need approval for access or installation. Accounts, recurring searches and final submissions are not activated by installation. During setup, the AI offers a regular search schedule and confirms your choices before creating it. You can keep searches manual.
 
 <details>
 <summary><strong>Optional: install using a terminal</strong></summary>

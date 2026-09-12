@@ -65,3 +65,7 @@ Read from disk every turn. Keep one writer per workspace. The helper's exclusive
 On recovery, validate state hashes, inspect pending actions and resume the recorded next action. Unsupported schemas, missing evidence or altered submitted snapshots must stop state writes until resolved. Never “repair” by silently deleting the conflicting history. Before repeating any pending submission, check employer state to avoid duplicate applications.
 
 Installing/updating the skill is separate from these records. Do not reinitialize W after an update. Validate its current schema, workspace ID, revision and evidence before continuing.
+
+## Daily routine state
+
+The optional `integrations.job_search_routine` configuration and daily run guard are described in [daily routine](routine.md). Use routine.py to preview the generated prompt and claim a daily run. Daily run identity and required-coverage snapshots cannot be removed or rewritten; complete status requires every snapshotted check. This extends schema v1 without requiring a routine in existing workspaces.

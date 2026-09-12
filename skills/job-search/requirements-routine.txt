@@ -1,0 +1,2 @@
+# Optional for IANA timezone support on systems without a timezone database.
+tzdata>=2025.1

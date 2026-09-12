@@ -14,7 +14,7 @@ Project skills use `.claude/skills`; invoke `/job-search` or a matching request.
 
 A first goal should finish at a verifiable point: saved profile plus first suitable application ready for candidate review. Start work on that target after sufficient answers. If blocked on a real candidate decision, ask and wait rather than repeating an empty loop. A goal does not authorize submission and does not create future scheduled runs.
 
-When the candidate asks for regular searches, obtain missing cadence/timezone and scope conversationally. Use the host's scheduler if available, preserve notification intent, and save the actual scheduler ID and configuration as private state. Verify creation, run a bounded functional test, then observe a real scheduled execution before marking it `observed_scheduled`. A local scheduler may require the computer and app to stay running. If the environment cannot schedule, explain the limitation and keep the manual “continue my search” workflow usable. Do not install an OS service, change permission modes, or add global hooks as a workaround.
+During onboarding, offer the optional weekday morning search after target work and region are known. Follow [daily routine](routine.md) for the interview, generated prompt, actual host scheduling, run guard, recovery, tests and changes. A saved choice, installed skill or manual test is not proof of a working timer.
 
 ## Gmail and calendar
 
@@ -31,6 +31,7 @@ The open format makes the core instructions portable. Installation support alone
 - [OpenAI scheduled tasks](https://learn.chatgpt.com/docs/automations)
 - [Claude Code skills](https://code.claude.com/docs/en/skills)
 - [Claude Code goals](https://code.claude.com/docs/en/goal)
+- [Claude Code Desktop scheduled tasks](https://code.claude.com/docs/en/desktop-scheduled-tasks)
 - [Claude Code scheduling](https://code.claude.com/docs/en/scheduled-tasks)
 - [Agent Skills specification](https://agentskills.io/specification)
 - [Skills installer](https://github.com/vercel-labs/skills)
