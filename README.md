@@ -132,6 +132,8 @@ Your answer stays linked to that employer and work period. If the session ends, 
 
 **LinkedIn:** with your permission, it compares your profile with your records, brings in additional useful details and asks about conflicts. It offers a fuller profile review after enough career information is gathered. Public edits require your approval.
 
+**Resume length and local format:** after reviewing your work history and where you are applying, it recommends one page, two pages or a longer CV where appropriate. It asks you to approve that standard, saves your choice and uses it for matching applications. It also reviews page spacing and the destination's conventions.
+
 **Daily search:** it also offers a weekday morning routine. You can accept it, change the time or keep searches manual.
 
 ### 5. Review the first useful result
@@ -215,4 +217,4 @@ Then summon the skill above. Opening the GitHub link alone does not install it.
 
 </details>
 
-[Full walkthrough](docs/setup.md) · [Skill instructions](skills/job-search/SKILL.md) · [Audit and limitations](docs/FINAL-AUDIT.md) · [Design](docs/DESIGN.md)
+[Full walkthrough](docs/setup.md) · [Skill instructions](skills/job-search/SKILL.md) · [Audit and limitations](docs/FINAL-AUDIT.md) · [QA response for Claude](docs/CLAUDE-QA-RESPONSE.md) · [Design](docs/DESIGN.md)

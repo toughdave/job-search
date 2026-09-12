@@ -206,6 +206,8 @@ def validate(state, root):
     routine.validate(state)
     import linkedin
     linkedin.validate(state,root)
+    import formatting
+    formatting.validate(state)
     return state
 
 def load(root):
@@ -257,6 +259,8 @@ def status_note(root,state):
     p.write_text(txt,encoding='utf-8')
 
 def guard_history(old,new,allow_rebind=False):
+    import formatting
+    formatting.guard_history(old,new)
     import linkedin
     linkedin.guard_history(old,new)
     import routine

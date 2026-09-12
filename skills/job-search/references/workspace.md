@@ -70,6 +70,10 @@ On recovery, validate state hashes, inspect pending actions and resume the recor
 
 Installing/updating the skill is separate from these records. Do not reinitialize W after an update. Validate its current schema, workspace ID, revision and evidence before continuing.
 
+## Document format decisions
+
+The optional `integrations.document_formats` extension is validated by `formatting.py`. Follow [destination and length decisions](document-format.md) after reviewing history and before adopting a resume/CV standard. Exact candidate authorization and saved local/employer guidance are required. Decisions are append-only and scoped to occupation, country, document kind, language and context. Older workspaces remain readable; the initial choice appears as a new baseline topic. Exported drafts report missing format authorization or pagination issues instead of certifying layout automatically.
+
 ## Daily routine state
 
 The optional `integrations.job_search_routine` configuration and daily run guard are described in [daily routine](routine.md). Use routine.py to preview the generated prompt and claim a daily run. Daily run identity and required-coverage snapshots cannot be removed or rewritten; complete status requires every snapshotted check. This extends schema v1 without requiring a routine in existing workspaces.

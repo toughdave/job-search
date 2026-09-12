@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.5.0"
+  version: "1.6.0"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -28,6 +28,8 @@ Ask **one short question at a time**, then wait; use a recommendation for proces
 Use `onboarding.py ask` and `save-answer` for the question/answer transaction; these update the next action and preserve exact text. Read [state schema and examples](references/state-schema.md) when mapping facts or adding employer entries. The first target-work question uses `target-work` / `occupation`. Location and remote/hybrid preference are separate decisions and separate turns. The helper prevents a second pending question, but you must keep each question itself to one decision.
 
 Cover name/contact details, location and relocation preferences, education, certifications/licences and relevant skills or CV additions using the profile guidance in onboarding. Reuse supplied details, confirm credential inventories, and preserve completed/in-progress/expired distinctions. Full street addresses and irrelevant personal data are not routine resume requirements. Save none, declined and deferred answers so they are not repeatedly requested.
+
+After reviewing the employer/role inventory and destination, recommend a resume/CV length and ask one approval question before adopting it as the person's standard. Prefer one page for a short relevant history; recommend two when substantial relevant experience warrants it, and more only where the document type, local practice or employer requires it. Employer count informs judgment, not a fixed cutoff. Follow [destination and length decisions](references/document-format.md), save the exact authorization, and reuse it for matching applications. Recheck a different destination or materially changed history. Maximize relevant content within the approved pages with readable spacing; do not pad sparse evidence or shrink text to force a fit.
 
 Read [reusable application questions](references/application-questions.md) when saving common form answers during onboarding or filling an application. Offer to collect reusable answers now or when needed; prioritize the current search. Preserve exact wording, meaning, country/employer/tool scope and confirmation date. Reuse equivalent answers without repeating questions, but distinguish sponsorship, relocation, office requirements, years of scoped experience, optional disclosures and specific consent. Store every real application's Q&A with its draft/submitted status.
 

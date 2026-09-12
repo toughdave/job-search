@@ -109,6 +109,12 @@ After the essential profile or when a form needs it, use [reusable application q
 
 Follow [LinkedIn and the evidence bank](linkedin.md). The `linkedin-url` topic captures a confirmed profile link for the resume or explicit omission early; the existing `linkedin` topic records the optional review choice separately. Reconcile authorized profile content during the interview, then prepare the fuller review after enough career information is gathered. `plan.linkedin` derives review freshness from saved evidence and profile snapshots. Declined/deferred choices remain respected; review freshness does not authorize public changes.
 
+## Resume/CV standard after history review
+
+Before formatting the first resume or CV, follow [destination and length decisions](document-format.md). The required `resume-format` topic records the initial recommendation and the person's approval, alternative, deferral or decline. Ask this after reconciling the employer/role inventory and target country, so the recommendation reflects actual relevant experience. Save the exact Q&A using `ask` / `save-answer`, then map its preference fact to this topic. A resume's existing length, an employer count, or silence is not authorization. Reuse an already saved equivalent answer rather than ask again.
+
+For another country, language, document type or application context, add a scoped profile topic such as `format-gb-general` instead of overwriting the initial topic. A material history change reopens the recommendation; preserve the earlier decision. If the person defers, keep the topic deferred and any provisional export clearly unapproved. Useful evidence work can continue while the choice remains pending.
+
 ## Optional daily search
 
 After target work and region are known, follow [daily routine](routine.md). The required `routine-choice` topic means the choice must be offered and recorded, not that automation is mandatory. Save yes, declined or deferred using the usual evidence/disposition process. Read saved answers before asking again. Confirmed yes starts the separate routine setup; preserve its incomplete state until the actual scheduler and prompt are verified.

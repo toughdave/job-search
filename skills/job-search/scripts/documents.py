@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import math
 import unicodedata
 from pathlib import Path
 import sys
@@ -10,6 +11,21 @@ sys.dont_write_bytecode = True
 import tempfile
 from xml.sax.saxutils import escape
 import workspace as ws
+import formatting
+
+LAYOUT={'body_font_pt':11,'line_spacing':1.2,'paragraph_gap_pt':5,'entry_gap_pt':8,
+        'vertical_margin_in':.65,'horizontal_margin_in':.7}
+BOUNDS={'body_font_pt':(10.5,12),'line_spacing':(1.05,1.35),'paragraph_gap_pt':(3,8),
+        'entry_gap_pt':(5,12),'vertical_margin_in':(.55,1),'horizontal_margin_in':(.55,1)}
+
+def layout_settings(model):
+    overrides=model.get('layout',{})
+    ws.require(isinstance(overrides,dict) and set(overrides).issubset(LAYOUT),'Unknown document layout setting.')
+    result={**LAYOUT,**overrides}
+    for key,value in result.items():
+        lo,hi=BOUNDS[key]
+        ws.require(type(value) in (float,int) and math.isfinite(value) and lo<=value<=hi,f'Layout {key} must be between {lo} and {hi}; preserve readability.')
+    return result
 
 def items(model):
     yield model['name']; yield model['contact']
@@ -27,6 +43,7 @@ def validate_model(model,state):
     ws.require(model.get('kind') in ('resume','cv','cover_letter'),'Invalid document kind.')
     ws.require(model.get('page_size') in ('Letter','A4'),'Choose Letter or A4.')
     ws.require(isinstance(model.get('sections'),list) and model['sections'],'Document sections required.')
+    layout_settings(model);formatting.for_model(model,state)
     facts={f['id']:f for f in state['profile']['facts']}
     for section in model['sections']:
         ws.require(isinstance(section.get('heading'),str),'Section heading must be text.')
@@ -41,13 +58,13 @@ def build_docx(model,path):
     from docx import Document
     from docx.shared import Inches,Pt,RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
-    d=Document(); section=d.sections[0]
+    layout=layout_settings(model);d=Document(); section=d.sections[0]
     if model['page_size']=='A4': section.page_width=Inches(8.2677); section.page_height=Inches(11.6929)
     else: section.page_width=Inches(8.5); section.page_height=Inches(11)
-    section.top_margin=section.bottom_margin=Inches(.65)
-    section.left_margin=section.right_margin=Inches(.7)
-    normal=d.styles['Normal']; normal.font.name='Arial'; normal.font.size=Pt(11)
-    normal.paragraph_format.space_after=Pt(5); normal.paragraph_format.line_spacing=1.08
+    section.top_margin=section.bottom_margin=Inches(layout['vertical_margin_in'])
+    section.left_margin=section.right_margin=Inches(layout['horizontal_margin_in'])
+    normal=d.styles['Normal']; normal.font.name='Arial'; normal.font.size=Pt(layout['body_font_pt'])
+    normal.paragraph_format.space_after=Pt(layout['paragraph_gap_pt']); normal.paragraph_format.line_spacing=layout['line_spacing']
     for name in ('Title','Heading 1','List Bullet'):
         d.styles[name].font.name='Arial'
         pp=d.styles[name].element.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pPr')
@@ -57,7 +74,7 @@ def build_docx(model,path):
     title=d.styles['Title']; title.font.size=Pt(14); title.font.bold=True; title.font.color.rgb=RGBColor(0,0,0)
     heading=d.styles['Heading 1']; heading.font.size=Pt(11); heading.font.bold=True; heading.font.color.rgb=RGBColor.from_string('183F5A')
     heading.paragraph_format.space_before=Pt(11); heading.paragraph_format.space_after=Pt(5); heading.paragraph_format.keep_with_next=True
-    bullet=d.styles['List Bullet']; bullet.font.size=Pt(11); bullet.paragraph_format.space_after=Pt(3)
+    bullet=d.styles['List Bullet']; bullet.font.size=Pt(layout['body_font_pt']); bullet.paragraph_format.space_after=Pt(3)
     p=d.add_paragraph(model['name']['text'],'Title'); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     p=d.add_paragraph(model['contact']['text']); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     for s in model['sections']:
@@ -66,7 +83,7 @@ def build_docx(model,path):
         for x in s.get('bullets',[]): d.add_paragraph(x['text'],'List Bullet')
         for index,e in enumerate(s.get('entries',[])):
             p=d.add_paragraph(); p.add_run(e['title']['text']).bold=True; p.paragraph_format.keep_with_next=True
-            if index:p.paragraph_format.space_before=Pt(8)
+            if index:p.paragraph_format.space_before=Pt(layout['entry_gap_pt'])
             if e.get('subtitle'):
                 p=d.add_paragraph(e['subtitle']['text']); p.paragraph_format.keep_with_next=True
             for x in e.get('paragraphs',[]): d.add_paragraph(x['text'])
@@ -116,7 +133,7 @@ def build_pdf(model,path,arial=None):
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.colors import HexColor
     from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,ListFlowable,ListItem
-    fonts=pdf_fonts(model,arial);font=fonts[0][0].fontName;bold=fonts[0][1].fontName
+    layout=layout_settings(model);fonts=pdf_fonts(model,arial);font=fonts[0][0].fontName;bold=fonts[0][1].fontName
     def markup(text,strong=False):
         result=[];run='';last=None
         for char in text:
@@ -129,7 +146,7 @@ def build_pdf(model,path,arial=None):
             last=face;run+=char
         if run:result.append(f'<font name="{last}">{escape(run)}</font>')
         return ''.join(result)
-    normal=ParagraphStyle('Body',fontName=font,fontSize=11,leading=14,spaceAfter=5)
+    normal=ParagraphStyle('Body',fontName=font,fontSize=layout['body_font_pt'],leading=layout['body_font_pt']*layout['line_spacing'],spaceAfter=layout['paragraph_gap_pt'])
     title=ParagraphStyle('Name',parent=normal,fontName=bold,fontSize=14,leading=18,alignment=1,spaceAfter=5)
     contact=ParagraphStyle('Contact',parent=normal,alignment=1,spaceAfter=8)
     heading=ParagraphStyle('Heading',parent=normal,fontName=bold,textColor=HexColor('#183F5A'),spaceBefore=10,spaceAfter=5,keepWithNext=True)
@@ -144,11 +161,37 @@ def build_pdf(model,path,arial=None):
         if s['heading']: story.append(Paragraph(markup(s['heading'],True),heading))
         story.extend(para(x) for x in s.get('paragraphs',[])); bullets(s.get('bullets',[]))
         for index,e in enumerate(s.get('entries',[])):
-            if index:story.append(Spacer(1,8))
+            if index:story.append(Spacer(1,layout['entry_gap_pt']))
             story.append(para(e['title'],entry))
             if e.get('subtitle'): story.append(para(e['subtitle'],sub))
             story.extend(para(x) for x in e.get('paragraphs',[])); bullets(e.get('bullets',[]))
-    SimpleDocTemplate(str(path),pagesize=letter if model['page_size']=='Letter' else A4,rightMargin=50.4,leftMargin=50.4,topMargin=46.8,bottomMargin=46.8,title=model['kind'].replace('_',' ').title(),author='').build(story)
+    positions={}
+    class MeasuredDocument(SimpleDocTemplate):
+        def afterFlowable(self,flowable):
+            # Measure the actual layout engine. PDF text visitors can misreport
+            # text matrices for wrapped lines and are not reliable gap measurements.
+            if isinstance(flowable,(Paragraph,ListFlowable)) or hasattr(flowable,'_flowable'):
+                positions[self.page]=self.frame._y
+    document=MeasuredDocument(str(path),pagesize=letter if model['page_size']=='Letter' else A4,rightMargin=72*layout['horizontal_margin_in'],leftMargin=72*layout['horizontal_margin_in'],topMargin=72*layout['vertical_margin_in'],bottomMargin=72*layout['vertical_margin_in'],title=model['kind'].replace('_',' ').title(),author='')
+    document.build(story)
+    return positions
+
+def pagination_review(reader,model,decision,positions=None):
+    margin=layout_settings(model)['vertical_margin_in']*72;rows=[]
+    for number,page in enumerate(reader.pages,1):
+        height=float(page.mediabox.height);usable=height-2*margin
+        if positions is None:
+            rows.append({'page':number,'estimated_body_fill':None,'bottom_gap_pt':None});continue
+        bottom=positions.get(number,height-margin)
+        gap=max(0,bottom-margin)
+        fill=max(0,min(1,1-gap/usable))
+        rows.append({'page':number,'estimated_body_fill':round(fill,3),'bottom_gap_pt':round(gap,1)})
+    target=decision['target_pages'] if decision else None
+    return {'target_pages':target,'actual_pages':len(reader.pages),
+        'matches_approved_length':len(reader.pages)==target if target else None,
+        'underfilled_pages':[r['page'] for r in rows if r['estimated_body_fill'] is not None and r['estimated_body_fill']<.8] if model['kind']!='cover_letter' else [],
+        'pages':rows,'measurement':'Approximate layout-engine content extent; not ink coverage or a visual-quality certificate.' if positions is not None else 'Layout extent unavailable; inspect rendered pages.',
+        'next_action':'Review page count and bottom gaps. Redistribute relevant evidence and adjust readable spacing; never add filler or silently change the approved standard.'}
 
 def export(value,model,stem,arial=None):
     root=ws.checked_root(value); state=ws.load(root); validate_model(model,state)
@@ -157,19 +200,22 @@ def export(value,model,stem,arial=None):
         ws.require(not ws.inside(root,stem+suffix).exists(),'Use a new version: an output filename already exists.')
     scratch=ws.inside(root,'scratch'); scratch.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='export-',dir=scratch) as temp:
-        temp=Path(temp); build_docx(model,temp/'draft.docx'); build_pdf(model,temp/'draft.pdf',arial)
+        temp=Path(temp); build_docx(model,temp/'draft.docx'); positions=build_pdf(model,temp/'draft.pdf',arial)
         from pypdf import PdfReader
         reader=PdfReader(temp/'draft.pdf'); text='\n'.join(p.extract_text() or '' for p in reader.pages)
         normalized=' '.join(text.split())
         ws.require(all(' '.join(i['text'].split()) in normalized for i in items(model)),'PDF text extraction did not preserve all model content; inspect before use.')
         claims={'workspace_id':state['workspace_id'],'state_revision':state['revision'],'items':[{'text':i['text'],'fact_ids':i['fact_ids']} for i in items(model)],'pdf_pages':len(reader.pages),'text_extraction':'passed','visual_review':'not_performed','semantic_review':'not_performed','docx_pagination':'not_verified'}
+        decision=formatting.for_model(model,state)
+        pagination=pagination_review(reader,model,decision,positions)
+        claims.update(format_decision_id=decision['id'] if decision else None,format_review='saved_decision' if decision else 'not_configured',pagination=pagination)
         (temp/'draft.model.json').write_text(json.dumps(model,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         (temp/'draft.claims.json').write_text(json.dumps(claims,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         # No export may be committed after evidence changed while rendering.
         with ws.write_lock(root):
             ws.require(ws.load(root)['revision']==state['revision'],'State changed during export; reread facts and try a new export.')
             outputs=[ws.import_file(root,temp/('draft'+suffix),stem+suffix) for suffix in ('.docx','.pdf','.model.json','.claims.json')]
-    return {'outputs':outputs,'pdf_pages':len(reader.pages),'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
+    return {'outputs':outputs,'pdf_pages':len(reader.pages),'pagination':pagination,'format_review':claims['format_review'],'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
 
 def main():
     ws.configure_output()
