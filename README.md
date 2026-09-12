@@ -4,6 +4,8 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 **[First time: start here](#first-time-step-by-step)** · **[Already installed](#already-installed)** · **[Coming back later](#coming-back-later)** · **[Need help?](#if-something-stops-you)**
 
+**Share the short guide:** [PDF](docs/job-search-guide.pdf) · [PowerPoint slides](docs/job-search-guide.pptx). Both include app download links, project screenshots and the exact first message. See the [final installation audit](docs/FINAL-AUDIT.md) for tested behavior and limits.
+
 ## The flow at a glance
 
 Click the small ↗ beside a step to open its instructions.
@@ -22,6 +24,17 @@ flowchart TD
 ## First time: step by step
 
 ### 1. Open Codex or Claude Code
+
+**Need the desktop app? Choose your computer below.** These official pages let you select and download the app before returning here.
+
+| App | Mac | Windows |
+| --- | --- | --- |
+| Codex | [Mac download page (Apple Silicon)](https://learn.chatgpt.com/docs/app) | [Windows download page](https://learn.chatgpt.com/docs/windows/windows-app#download-the-chatgpt-desktop-app) |
+| Claude Code | [Claude downloads: choose macOS](https://claude.com/download) | [Claude downloads: choose Windows or Windows ARM64](https://claude.com/download) |
+
+Open a link in a new tab with **Ctrl+click** on Windows or **Command+click** on Mac, or right-click and choose **Open link in new tab**. This README uses explicit computer choices rather than trying to detect your operating system.
+
+For Codex, the current download is the **ChatGPT desktop app**; open it and select **Codex**. For Claude Code, install **Claude**, then open its **Code** tab. The apps have their own account requirements; check the [Claude Code setup page](https://code.claude.com/docs/en/desktop-quickstart) if Code prompts you to upgrade. Already installed? Continue below. Sources: [OpenAI desktop setup](https://learn.chatgpt.com/docs/app), [Claude downloads](https://claude.com/download).
 
 Sign in to a version that can work with files on your computer. Start a conversation in a **dedicated local project/folder**, such as **My Job Search**. Here, “project” simply means the folder the AI is working in.
 
@@ -59,7 +72,7 @@ Using a terminal or editor instead? Open the same dedicated folder as the workin
 
 | App | Recommended starting choice | What to expect |
 | --- | --- | --- |
-| Codex | Open the permission selector near the message box's lower left. Choose project/workspace read-and-write access with approvals when needed; some versions call this **Auto**. | Approve requested installation, network access and any extra folder access. Read-only access cannot save your search. |
+| Codex | Open the permission selector near the message box's lower left. Choose project/workspace read-and-write access with approvals when needed. Current Windows documentation calls the selector **Ask for approval**; other versions use **Auto** or permission profiles. | Approve requested installation, network access and any extra folder access. Read-only access cannot save your search. |
 | Claude Code | Use the mode selector next to Send. Choose **Accept edits** (older versions: **Auto accept edits**). | File edits and common folder operations can proceed; other commands can still need approval. **Manual** also works if you approve each change. Leave **Plan** mode when ready to install and save. |
 
 **About broader access:** Codex's **Full access** removes the usual sandbox restrictions and approval prompts, so it grants more than this project needs. It is optional, not an installation prerequisite. Claude's **Bypass permissions** is also unnecessary here; Anthropic recommends it only in isolated containers or virtual machines. Organization policies can limit the available choices. Sources: [Codex permissions](https://learn.chatgpt.com/docs/agent-approvals-security#defaults-and-recommendations), [Claude permission modes](https://code.claude.com/docs/en/desktop#choose-a-permission-mode).
