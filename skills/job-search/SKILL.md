@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, and track applications and replies. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   compatibility: Local AI agent with file access; Python 3.10+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -25,9 +25,15 @@ Read [project onboarding](references/onboarding.md) and [interview and evidence]
 
 Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Missing checkmarks are not proof of missing answers.
 
+Cover name/contact details, location and relocation preferences, education, certifications/licences and relevant skills or CV additions using the profile guidance in onboarding. Reuse supplied details, confirm credential inventories, and preserve completed/in-progress/expired distinctions. Full street addresses and irrelevant personal data are not routine resume requirements. Save none, declined and deferred answers so they are not repeatedly requested.
+
+Read [reusable application questions](references/application-questions.md) when saving common form answers during onboarding or filling an application. Offer to collect reusable answers now or when needed; prioritize the current search. Preserve exact wording, meaning, country/employer/tool scope and confirmation date. Reuse equivalent answers without repeating questions, but distinguish sponsorship, relocation, office requirements, years of scoped experience, optional disclosures and specific consent. Store every real application's Q&A with its draft/submitted status.
+
 Establish target work, country/region and essential constraints; ask about missing evidence when it affects a decision. One question means one decision: ask about target work first, then location in a later turn if still unknown. Do not bundle “what role and location?” into a single question. Let a candidate without a resume describe their most recent work or study. Begin one useful fit check or draft as soon as enough is known. Continue the interview only where the next task needs it. Do not conduct an endless “complete your whole profile first” interview.
 
-Expand the evidence bank beyond resume bullets with a small set of real, occupation-relevant scenarios: context, personal actions, tools/methods and a supported result or lesson. Ask only missing details, accept an honest lack of experience, and preserve project/volunteer/study boundaries. Offer an optional LinkedIn review once and save the choice. A new project gets an independent interview and evidence bank; reuse another project's material only through explicitly authorized copying, never automatic access or inherited checkmarks/consent.
+Build an employer-by-employer history, with separate entries for each role and period, from the resume or a one-question-at-a-time interview. Confirm whether the candidate has finished listing employers; a resume is not necessarily exhaustive. For every entry, save responsibilities and real scenarios linked to that employer, role and dates: context, personal actions, tools/methods and supported results or lessons. Use its actual bullets to direct questions; generic job expectations are question prompts, never candidate facts. Reconcile saved answers before asking again and keep incomplete roles pending across sessions. Follow the work-history coverage rules in [project onboarding](references/onboarding.md). Useful drafts can begin before the full interview is complete; do not mislabel partial onboarding as complete.
+
+Ask only missing details, accept an honest lack of experience, and preserve project/volunteer/study boundaries. Offer an optional LinkedIn review once and save the choice. A new project gets an independent interview and evidence bank; reuse another project's material only through explicitly authorized copying, never automatic access or inherited checkmarks/consent.
 
 ## Do the search and application work
 

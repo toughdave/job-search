@@ -230,6 +230,10 @@ def status_note(root,state):
         txt+='\n## Interview progress\n\nResume: '+review['resume_status']+'\n\n'
         for topic in review['topics']:
             txt+=f"- [{'x' if topic['checked'] else ' '}] {topic['title']} ({topic['status']})\n"
+        history=review['work_history']
+        txt+=f"\n- [{'x' if history['inventory_confirmed'] else ' '}] Candidate confirmed the full work-history list\n"
+        for role in history['experiences']:
+            txt+=f"- [{'x' if role['resolved'] else ' '}] {role['employer']} / {role['role']} / {role['start']} - {role['end']}: {', '.join(role['gaps']) or 'covered or explicitly declined'}\n"
         txt+='\nThese boxes are derived from evidence. Skipped topics retain their reason; do not edit the boxes.\n'
     p.write_text(txt,encoding='utf-8')
 

@@ -7,6 +7,18 @@ import sys
 sys.dont_write_bytecode = True
 import workspace as ws
 
+def baseline_topics():
+    return [
+        {'id':'region','track_id':None,'kind':'profile','title':'Search location and constraints','required':True,'dimensions':['location','constraints']},
+        {'id':'background','track_id':None,'kind':'profile','title':'Work, projects and education','required':True,'dimensions':['roles','education']},
+        {'id':'linkedin','track_id':None,'kind':'linkedin','title':'Optional LinkedIn review choice','required':True,'dimensions':['decision']},
+        {'id':'contact-name','track_id':None,'kind':'profile','title':'Name to use on applications','required':True,'dimensions':['name']},
+        {'id':'contact-email','track_id':None,'kind':'profile','title':'Application email address','required':True,'dimensions':['email']},
+        {'id':'contact-phone','track_id':None,'kind':'profile','title':'Application phone number','required':True,'dimensions':['phone']},
+        {'id':'credentials','track_id':None,'kind':'profile','title':'Certifications and professional licences','required':True,'dimensions':['certifications']},
+        {'id':'relocation','track_id':None,'kind':'profile','title':'Willingness to relocate and any limits','required':True,'dimensions':['relocation']}
+    ]
+
 def validate(state, root):
     ob=state.get('onboarding')
     if ob is None: return  # Read older workspaces without destructive migration.
@@ -17,6 +29,10 @@ def validate(state, root):
     sources=ws.indexed(state['sources'],'sources');facts=ws.indexed(state['profile']['facts'],'facts')
     answers=ws.indexed(state['interviews'],'interviews')
     tracks=ws.indexed(ob.get('tracks'),'tracks');topics=ws.indexed(ob.get('topics'),'topics')
+    for expected in baseline_topics():
+        topic=topics.get(expected['id'])
+        if topic is not None:
+            ws.require(topic.get('required') is True and topic.get('track_id') is None and topic.get('kind')==expected['kind'] and set(expected['dimensions']).issubset(topic.get('dimensions',[])),'Baseline profile coverage cannot be disabled.')
     ws.require(ob.get('active_track') is None or ob['active_track'] in tracks,'Unknown active occupation.')
     for track in tracks.values():
         ws.require(isinstance(track.get('occupation'),str) and track['occupation'].strip(),'Occupation label required.')
@@ -62,6 +78,8 @@ def validate(state, root):
         ws.require(p.suffix.lower() in ('.txt','.md') and p.read_text(encoding='utf-8').strip(),'Resume text must be saved and nonempty.')
     if intake['status']=='no_resume':
         ws.require(any(sources[x]['kind'] in ('candidate_answer','candidate_report') for x in intake['source_ids']),'No-resume route requires the candidate answer.')
+    import experience
+    experience.validate(state)
 
 def guard_history(old,new):
     before=old.get('onboarding');after=new.get('onboarding')
@@ -69,8 +87,9 @@ def guard_history(old,new):
     ws.require(after is not None,'Saved onboarding cannot be deleted.')
     for key in ('version','workspace_id','project_root'):
         ws.require(after.get(key)==before[key],'Cannot silently rebind the interview to another project.')
-    for key in ('tracks','topics','questions','evidence','dispositions'):
-        previous=ws.indexed(before[key],key);current=ws.indexed(after[key],key)
+    for key in ('tracks','topics','questions','evidence','dispositions','experiences','history_reviews'):
+        ws.require(after.get(key,[])[:len(before.get(key,[]))]==before.get(key,[]),f'Onboarding {key} order is append-only.')
+        previous=ws.indexed(before.get(key,[]),key);current=ws.indexed(after.get(key,[]),key)
         ws.require(all(k in current and current[k]==v for k,v in previous.items()),f'Onboarding {key} is append-only.')
 
 def bind(value,project_value):
@@ -82,11 +101,7 @@ def bind(value,project_value):
         check_project(state,project);return state
     state['onboarding']={'version':1,'workspace_id':state['workspace_id'],'project_root':str(project),
         'resume':{'status':'unchecked','source_ids':[]},'tracks':[],'active_track':None,
-        'topics':[
-            {'id':'region','track_id':None,'kind':'profile','title':'Search location and constraints','required':True,'dimensions':['location','constraints']},
-            {'id':'background','track_id':None,'kind':'profile','title':'Work, projects and education','required':True,'dimensions':['roles','education']},
-            {'id':'linkedin','track_id':None,'kind':'linkedin','title':'Optional LinkedIn review choice','required':True,'dimensions':['decision']}
-        ],'questions':[],'evidence':[],'dispositions':[]}
+        'topics':baseline_topics(),'questions':[],'evidence':[],'dispositions':[],'experiences':[],'history_reviews':[]}
     return ws.commit(root,state,state['revision'],'Bound private interview to the selected project')
 
 def check_project(state,project):
@@ -99,9 +114,11 @@ def plan(value,project):
     current=lambda ids: all(facts[x]['status'] in ('candidate_reported','verified') for x in ids)
     answers={q['onboarding_question_id']:q for q in state['interviews'] if q.get('onboarding_question_id')}
     dispositions={x['topic_id']:x for x in ob['dispositions']}
+    replaced={e['supersedes'] for e in ob.get('experiences',[]) if e.get('supersedes')}
     rows=[]
     for topic in ob['topics']:
         if topic['track_id'] not in (None,ob['active_track']):continue
+        if topic.get('experience_id') in replaced:continue
         evidence=[e for e in ob['evidence'] if e['topic_id']==topic['id'] and current(e['fact_ids'])]
         covered={e['dimension'] for e in evidence}
         missing=[d for d in topic['dimensions'] if d not in covered]
@@ -113,7 +130,7 @@ def plan(value,project):
             if q['topic_id']!=topic['id'] or q['dimension'] not in missing:continue
             if q['id'] in answers:unmapped.append(answers[q['id']]['id'])
             elif not disposition:pending.append(q)
-        rows.append({'id':topic['id'],'title':topic['title'],'status':status,'checked':status=='answered',
+        rows.append({'id':topic['id'],'title':topic['title'],'experience_id':topic.get('experience_id'),'status':status,'checked':status=='answered',
             'required':topic['required'],'missing_dimensions':missing,'pending_questions':pending,
             'unmapped_answer_ids':unmapped,'review_saved_evidence_before_asking':bool(missing and not disposition),
             'fact_ids':sorted({x for e in evidence for x in e['fact_ids']})})
@@ -121,9 +138,15 @@ def plan(value,project):
     active=ob['active_track'];required=[r for r in rows if r['required']]
     has_examples=any(t['track_id']==active and t['kind']=='example' and t['required'] for t in ob['topics']) if active else False
     unresolved=[r['id'] for r in required if r['status'] not in ('answered','declined','not_applicable','no_example')]
+    import experience
+    history=experience.coverage(state,rows)
+    configured={t['id']:t for t in ob['topics']}
+    missing_baseline=[t for t in baseline_topics() if t['id'] not in configured]
     return {'workspace_id':state['workspace_id'],'revision':state['revision'],'project_root':ob['project_root'],
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
-        'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved),
+        'work_history':history,
+        'missing_baseline_topics':missing_baseline,
+        'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved and history['ready'] and not missing_baseline),
         'unresolved_required_topics':unresolved,
         'instruction':'Review all existing facts and exact answers for each missing dimension before asking. Map supported answers into evidence; do not repeat an answered question. Checked is derived, never an input.'}
 

@@ -122,7 +122,17 @@ For example, after reading your resume it might ask:
 
 Give your own answer. The AI saves it and asks the next question when needed. You do not fill out a tracker or arrange application folders.
 
-It also asks for relevant real examples beyond your resume: what happened, what you personally did, which tools you used, and the result or lesson. Its project-specific checklist is checked against saved answers before it asks again. If you pause halfway through, it should resume the missing detail. It will offer an optional LinkedIn review; you can say yes, no, or later.
+The AI builds a separate evidence section for **each employer, role and period of work**. With a resume, it uses the employers and bullets already there. Without one, it asks you about your employers, roles and dates, one missing detail at a time. It also confirms whether you have finished listing your employers.
+
+For each role it asks directed questions about responsibilities and real examples: what happened, what you personally did, which tools you used, and the result or lesson. For example, if your resume lists scheduling work at a fictional Cedar Clinic:
+
+> **AI:** At Cedar Clinic, tell me about one scheduling problem you handled as an office assistant.
+
+Your answer stays linked to that employer and work period for future resumes, CVs and cover letters. One employer's story cannot complete another employer's checklist. Saved answers are checked before asking again; an interrupted interview resumes its missing detail. You can decline or defer a topic. The AI can prepare useful drafts while the rest of your history remains pending. It also offers an optional LinkedIn review; you can say yes, no, or later.
+
+It also checks your name, email, phone, city/region, relocation preferences, education, certifications and relevant skills. Each degree, diploma or certification keeps its own institution/issuer, dates and status. It asks about relevant projects, languages, awards or other CV details where useful. It reuses information you already supplied and remembers “none,” declined and deferred answers. A full street address is optional, not a routine resume requirement.
+
+You can also save common application answers during setup or when a form needs them: work authorization, sponsorship, start dates, salary expectations, working arrangements and relevant screening questions. The AI remembers each answer's scope and date, checks the actual form wording, and asks again only when something material differs. Employer-specific questions wait for that employer; sensitive disclosures remain optional. Your private answers are never included in the shared skill.
 
 ### 5. Review the first useful result
 

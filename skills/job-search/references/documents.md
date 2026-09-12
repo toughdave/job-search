@@ -2,6 +2,8 @@
 
 The person reviews the content; the AI operates the document tools. Do not tell them to fill a template, run a script, inspect XML or convert files themselves.
 
+When drafting an employment entry or employer-specific cover-letter story, retrieve its `experience_id`, employer, role, period and linked facts/Q&A from onboarding. Keep achievements under the employer and period where they occurred. Check superseded entries and facts; a transferable skill may support a job requirement without relocating the underlying achievement to another employer. Preserve approximate dates and unresolved gaps; never use expected duties as candidate experience.
+
 Use relevant fact IDs to make a requirement-to-evidence map before drafting. Keep candidate-reported evidence qualified internally; do not claim independent verification. Every candidate-facing identity line, summary, skill and achievement must be supported. Preserve a master and make a new filename for each tailored draft. Never rewrite a submitted file.
 
 ## Default design
