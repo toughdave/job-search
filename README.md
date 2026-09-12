@@ -8,11 +8,11 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 ```mermaid
 flowchart TD
-    A["1 · Open a local job-search project"] --> B["2 · Add your resume or its file location"]
-    B --> C["3 · Paste the first-time message and send"]
-    C --> D["4 · Let the AI set up; answer its questions"]
-    D --> E["5 · Review your first application draft"]
-    E --> F["Next visit · Reopen the same conversation<br/>Send: Continue my job search."]
+    A["1 · Open your AI app<br/>Choose a local project"] --> B["2 · Add your resume<br/>Or paste its file path"]
+    B --> C["3 · Paste the message<br/>Send once to start"]
+    C --> D["4 · Answer questions<br/>AI handles the setup"]
+    D --> E["5 · Review the draft<br/>Ask for corrections"]
+    E --> F["Next visit · Same chat<br/>Continue my job search."]
 ```
 
 ## First time: step by step
