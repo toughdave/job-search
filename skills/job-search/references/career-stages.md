@@ -53,3 +53,13 @@ Offer calendar holds and reminders after saving the verified logistics. Create o
 ## Debrief
 
 After a round, save the candidate's actual recollection, exact questions and actual answers separately from improved practice answers. For each important answer, assess correctness, coverage, specificity and impact; say “incomplete” when warranted. Give one corrected answer and one concrete practice action. Preserve uncertainty where recollection is approximate. Employer feedback may explain an outcome; your own interpretation must be labelled as interpretation, never reported as the hiring reason.
+
+## Save-time enforcement
+
+New `document` sources under `applications/APP_ID/` ending in `.md` or `.txt` are scanned again by `workspace.py commit`. Unresolved phrase flags prevent registration. Old versions remain readable for correction. Run the draft scan before import to avoid leaving an unregistered draft file after a refusal; use a new version if an immutable file already exists.
+
+Correct the sentence itself. “That was outside the role's scope (only this duty)” still broadens the evidence. Use “I did not manage the dentists' schedules” when that is what the candidate said. A genuinely supported flagged statement may be retained as a literal double-quoted candidate quotation with the exact candidate source ID on that line; the quote must occur in its saved `candidate_answer` or `candidate_report` source. Standalone practice questions are not treated as self-claims. A source citation plus a new paraphrase cannot bypass an unresolved flag. These checks are bounded English patterns, not semantic proof.
+
+`check-reply` also refuses unresolved evidence wording, so the final summary cannot casually reintroduce a flagged claim. For a stage turn, still scan the proposed summary with the application context to check material-status labels too.
+
+A flagged employer requirement can be retained as an exact quoted excerpt and source ID on a line beginning `Employer requirement:`, `Employer posting:` or `Employer message:`. The matching source must be `employer` or `official`. This preserves useful role context while preventing that quote from being used as a candidate answer. Ordinary references to similar job roles are not system-comparison claims.

@@ -244,6 +244,9 @@ def check_reply(value,project,reply,expected):
     pending=[q for row in review['topics'] for q in row['pending_questions']]
     ws.require(len(pending)<=1,'Resolve multiple pending questions before replying.')
     text=reply.strip();ws.require(text,'Proposed reply is empty.')
+    import stage_review
+    flags=stage_review.unresolved(text,state,ws.checked_root(value),True)
+    ws.require(not flags,'Reply contains unresolved evidence wording: '+json.dumps(flags,ensure_ascii=False)+'. Remove the broader claim; keep the specific supported experience. A disclaimer does not fix it.')
     narration=text.replace('’',"'")
     ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply)\b",narration,re.I),
                'Remove internal validation narration. The entire reply must be candidate-facing text only.')

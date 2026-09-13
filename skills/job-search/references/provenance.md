@@ -33,3 +33,9 @@ Resolve materially different claims separately. Denial of using a tool or managi
 Several drafts may descend from one generated ancestor. Treat them as one claim lineage, not several independent witnesses. An attractive metric appearing in three AI drafts stays unverified without its origin. Grades are review metadata, not a replacement for `candidate_reported`, `verified`, `unresolved` or `superseded` status.
 
 Reconcile disagreements in employer names, periods, scope, tools and metrics against original evidence, then ask one focused question if needed. Save the actual correction and supersede affected facts; do not silently choose the most impressive draft. Keep historical phrases as leads without manufacturing interviews that never happened. Reconcile the employer inventory across all readable sources before requesting the candidate's completeness confirmation.
+
+## Updating current claim rows
+
+Rebuild the current ledger as one claim per row: original excerpt/source, grade, current status, resolution source and rationale. Keep previous versions by the helper's link. Do not copy an old grouped resolution and add a contradictory sentence beneath it. A date conflict, denied tool, denied duty and unmeasured metric require separate rows.
+
+New ledger saves and registrations refuse permanent-exclusion wording and a row that mixes denied/false with unverified/unmeasured statuses. Split such a row into its actual claims. Historical ledgers remain readable. These checks protect the observed bookkeeping/wording boundaries; they do not decide whether a candidate's account is true.

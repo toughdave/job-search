@@ -65,13 +65,22 @@ def prepare(value,application_id,source,review_file,name,name_fact_id,kind):
         ws.require(type(count) is int and 0<count<=1000 and isinstance(pages,list) and all(type(p) is int for p in pages) and sorted(pages)==list(range(1,count+1)),'Visual review must cover every page exactly once.')
         ws.require(review.get('status')=='reviewed' and review.get('unresolved_defects')==[] and isinstance(review.get('renderer'),str) and review['renderer'].strip() and isinstance(review.get('findings'),str) and review['findings'].strip(),'Complete the actual visual review and its findings first.')
         ws.stamp(review.get('reviewed_at'),'reviewed_at')
+        inspection=review.get('inspection',{})
+        ws.require(isinstance(inspection,dict) and inspection.get('method')=='image_tool' and isinstance(inspection.get('tool'),str) and inspection['tool'].strip(),'Visual review needs the actual image-viewing tool and page image references. Rendering or extracting text is not viewing. Reopen every page with an available image tool; otherwise keep this file blocked.')
+        images=inspection.get('images',[])
+        ws.require(isinstance(images,list) and all(isinstance(i,dict) and type(i.get('page')) is int for i in images) and sorted(i['page'] for i in images)==list(range(1,count+1)),'Record one viewed image for every page.')
+        ws.require(len({i.get('file') for i in images})==count,'Use a separate rendered image file for every page.')
+        for image in images:
+            ws.file_ref(root,image,'Viewed page image')
+            ws.require(ws.inside(root,image['file']).read_bytes().startswith(b'\x89PNG\r\n\x1a\n'),'Preserve rendered page images as PNG files.')
         basename=filename(name,application['employer'],application['role'],kind,src.suffix.lower())
         relative='applications/'+application_id+'/uploads/'+review['sha256'][:16]+'/'+basename
         result=ws.import_file(root,src,relative)
         ws.require(result['sha256']==review['sha256'],'Source changed while making upload copy; do not upload this copy. Review the current source again.')
         ws.require(ws.digest(review_path)==review_hash,'Review record changed; inspect it again before upload.')
+        for image in images:ws.file_ref(root,image,'Viewed page image')
         return {**result,'basename':basename,'markdown_link':'['+basename+'](<'+ws.inside(root,relative).as_posix()+'>)','review':{'file':review_file,'sha256':review_hash},'reviewed_source':source,
-                'next_action':'Record this upload copy and review reference in the application. Recheck its hash before upload. This validates a review record, not the act of viewing pages.'}
+                'next_action':'Record this upload copy and review reference in the application. Recheck file and image hashes before upload. This validates a review record and its images, not the truth of the claimed image-tool use.'}
 
 
 def main():

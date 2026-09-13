@@ -10,6 +10,18 @@ import workspace as ws
 PATTERN=re.compile(r'^notes/provenance-ledger-v(\d+)\.md$')
 
 
+def review_text(body):
+    for number,line in enumerate(body.splitlines(),1):
+        ws.require(not re.search(r'\b(?:excluded? permanently|permanently exclud\w*|permanent (?:ban|exclusion))\b',line,re.I),f'Ledger line {number}: exclusion depends on current evidence, not a permanent ban. Preserve the old version by link and write the current resolution.')
+        ws.require(not (re.search(r'\b(?:false|disproven|denied)\b',line,re.I) and re.search(r'\b(?:unconfirmed|unverified|unmeasured|unknown)\b',line,re.I)),f'Ledger line {number}: separate conflicting resolution statuses into individual claim rows. An unmeasured result is unverified; a denied tool or duty is a separate claim.')
+
+
+def guard_new_documents(old,new,root):
+    known={s['id'] for s in old['sources']}
+    for _,source in registered(new):
+        if source['id'] not in known:review_text(ws.inside(root,source['file']).read_text(encoding='utf-8-sig'))
+
+
 def registered(state):
     rows=[]
     for source in state['sources']:
@@ -61,6 +73,7 @@ def save(value,draft,expected):
     ws.require('onboarding' in state,'Bind the project interview before saving its ledger.')
     path=ws.inside(root,draft);ws.require(draft.startswith('scratch/'),'Prepare the ledger draft in workspace scratch.')
     body=path.read_text(encoding='utf-8-sig').strip();ws.require(body,'Ledger draft is empty.')
+    review_text(body)
     digest=hashlib.sha256(body.encode('utf-8')).hexdigest();rows=registered(state)
     latest=rows[-1][1] if rows else None;intake=state['onboarding']['resume']
     if latest and latest.get('draft_sha256')==digest and latest.get('resume_source_ids')==intake.get('source_ids',[]):

@@ -336,6 +336,8 @@ def commit(value,candidate,expected,summary,*,allow_rebind=False):
         require(new.get('workspace_id')==old['workspace_id'] and new.get('created_at')==old['created_at'],'Cannot change workspace identity.')
         require(new.get('revision')==expected,'Draft revision must match the state you read.')
         validate(new,root); guard_history(old,new,allow_rebind=allow_rebind)
+        import stage_review,provenance
+        stage_review.guard_new_documents(old,new,root);provenance.guard_new_documents(old,new,root)
         new['revision']=expected+1; new['updated_at']=now()
         new['history'].append({'revision':new['revision'],'at':new['updated_at'],'summary':summary})
         backup=inside(root,f".job-search/backups/state-{expected:06d}-{uuid.uuid4().hex[:8]}.json")

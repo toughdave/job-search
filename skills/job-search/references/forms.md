@@ -19,10 +19,25 @@ The basename is at most 80 characters, normally `Name - Employer - Role - Resume
 Save a JSON visual-review record in the workspace using actual observations:
 
 ```json
-{"file":"applications/APP_ID/resume-v003.pdf","sha256":"ACTUAL_HASH","status":"reviewed","unresolved_defects":[],"page_count":2,"pages_inspected":[1,2],"renderer":"ACTUAL_VIEWER","reviewed_at":"OBSERVED_OFFSET_TIMESTAMP","findings":"Actual findings and corrections; no unresolved layout defect."}
+{
+  "file": "applications/APP_ID/resume-v003.pdf",
+  "sha256": "ACTUAL_DOCUMENT_HASH",
+  "status": "reviewed",
+  "unresolved_defects": [],
+  "page_count": 1,
+  "pages_inspected": [1],
+  "renderer": "ACTUAL_RENDERER",
+  "inspection": {
+    "method": "image_tool",
+    "tool": "ACTUAL_IMAGE_VIEWING_TOOL",
+    "images": [{"page": 1, "file": "notes/review-images/resume-page-1.png", "sha256": "ACTUAL_IMAGE_HASH"}]
+  },
+  "reviewed_at": "OBSERVED_OFFSET_TIMESTAMP",
+  "findings": "Actual findings and corrections; no unresolved layout defect."
+}
 ```
 
-This record must follow real inspection of every page; producing it does not itself constitute visual review. For DOCX, the record concerns that exact DOCX rendered through the available office converter. Use an approved current identity fact for the supplied name:
+This record must follow real inspection of every page; producing it does not itself constitute visual review. Use the available image-viewing tool (`view_image` in Codex; `Read` on PNGs in Claude Code) so every page actually enters the model's vision context. Preserve the viewed PNGs in `notes/review-images/` through workspace import and record their hashes. Rendering files, reading extracted text or examining page dimensions does not count. If no image tool is available, stop upload readiness rather than inventing findings. Legacy reviews without image references need actual page inspection and a new versioned review before another upload copy is prepared. For DOCX, inspect PNGs rendered from that exact DOCX through the available office converter. Use an approved current identity fact for the supplied name:
 
 ```sh
 python S/scripts/uploads.py --workspace W --application APP_ID --source applications/APP_ID/resume-v003.pdf --review notes/review.json --name "Candidate Name" --name-fact-id IDENTITY_FACT_ID --kind resume
