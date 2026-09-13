@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.10.0"
+  version: "1.10.1"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -24,6 +24,8 @@ On every return, read current state from disk and any pending work before decidi
 ## Conversational onboarding
 
 Read [project onboarding](references/onboarding.md) and [interview and evidence](references/interview.md). One-question pacing, waiting for answers, evidence gathering and file management are defaults even when invoked with only “Use job-search.” For multiple versions or old drafts, follow [multi-resume provenance](references/provenance.md). Bind the private interview to the actual selected project, verify resume intake, and run the evidence-derived checklist on every return. Never infer an attached/read resume from installation or a candidate saying yes. If no resume exists, record that answer and help build one from supported experience.
+
+For two or more original resumes, the intake turn must save and read back the versioned provenance ledger, including explicit D rows for excluded/conflicting claims. Warnings in prose or fact limits alone do not complete this work. Name, email and phone are separate questions; reuse supplied contact details without asking again.
 
 Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Say “saved” only after a successful write and readback. In a read-only session or response simulation, do not claim anything was saved or activated. Missing checkmarks are not proof of missing answers.
 
@@ -54,6 +56,8 @@ Read [writing craft and letters](references/writing.md) to select and write the 
 Follow [form entry and clean upload copies](references/forms.md) for parser corrections, constrained fields and cover-letter completion. Prepare supported application fields through final review within existing authorization. Ask for explicit approval for the specific final submission if not already authorized. Login, CAPTCHA and live assessments stay with the person under the harness's rules. Never invent an approval or reuse another candidate's consent. Confirm the employer's receipt before marking submitted; a report of clicking Submit without confirmation stays unverified. Posting closure is separate from the application outcome.
 
 Before uploading any generated resume/CV or letter, visually inspect every page of the actual upload file under [document quality gates](references/documents.md#quality-gate). Correct defects and inspect the new version again. Text extraction and a separate model-generated PDF do not verify an actual DOCX's layout. Record the inspected file's hash and pages; changed files require a new review. If visual inspection is unavailable, retain the draft and pause its upload.
+
+A request to make files “ready to upload” triggers [clean upload completion](references/forms.md#clean-upload-files), even without opening a portal. Save the actual JSON review and execute `uploads.py` for each requested resume/CV and letter; commit/read back the returned copy/hash/review references and link the clean filenames. Exporting a draft or reading helper help is not completion. If blocked, report the unfinished step instead of claiming readiness.
 
 When an employer responds, follow [career stages](references/career-stages.md) for recruiter screens, interviews, assessments, requests, references, offers and debriefs. Prepare the relevant pack and update the next action; calendar or outbound actions still need authorization. Use [measurement](references/measurement.md) for observed milestones and confirmed-submission cohorts.
 

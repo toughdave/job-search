@@ -6,7 +6,9 @@ Preserve every original as a separate hashed source, extract readable text, and 
 
 The existing `onboarding.resume.source_ids` can list several originals and text sources. Its `text_source_id` can point to a combined readable inventory that labels every section with its original source ID. Keep per-file extracted text too. Do not mark all files read when one failed; record the unread file and missing work explicitly. Update intake only after the actually readable sources have been reviewed; the remaining file stays pending in the next action.
 
-Maintain a private provenance ledger in `notes/` linking each candidate claim, its employer/period, original excerpt/source, possible common ancestor, grade and resolution:
+When two or more original resumes are supplied, create `notes/provenance-ledger-v001.md` **before finishing that intake turn**, even if a conflict is still awaiting an answer. A combined extraction or a warning in a fact's `limits` does not replace this ledger. Record the source inventory and every material retained, derived, conflicting or excluded claim: employer/period, original excerpt/source ID, linked fact IDs if any, possible common ancestor, grade, rationale, and resolution or pending question. Explicitly include each D-graded claim; do not silently discard it or promote it into a candidate fact.
+
+Write the ledger through workspace `import-file`, register it as a `document` source, and save its returned file/hash/source ID in `onboarding.resume.provenance_ledger`. Read it back before calling reconciliation complete. On later corrections, save v002 (and so on), link the preceding ledger, preserve excluded-claim history, and update the pointer. Reuse the current ledger when the source inventory and resolutions are unchanged. A missing ledger is unfinished AI work, not a reason to ask the candidate again for facts already supplied.
 
 | Grade | Meaning | Use |
 | --- | --- | --- |
@@ -14,6 +16,8 @@ Maintain a private provenance ledger in `notes/` linking each candidate claim, i
 | B | Repeated claim corroborated by an independent source or explicit candidate confirmation | Cite the corroboration. Repetition alone is insufficient. |
 | C | Derived phrasing from an earlier source | Reuse wording only after matching its meaning and scope to A/B evidence. |
 | D | Unverified enhancement or unresolved conflict | Exclude from employer-facing claims until resolved. |
+
+For example, an unsupported “30% fewer no-shows” claim stays in a D row with its original source and “excluded pending confirmation”, even when no such fact is added to the evidence bank. A later candidate correction gets its own source and resolution; it does not erase the original row.
 
 Several drafts may descend from one generated ancestor. Treat them as one claim lineage, not several independent witnesses. An attractive metric appearing in three AI drafts stays unverified without its origin. Grades are review metadata, not a replacement for `candidate_reported`, `verified`, `unresolved` or `superseded` status.
 

@@ -32,6 +32,8 @@ Before saving the pack, audit every candidate-facing sentence, including the int
 
 Check material status independently from the invitation. An interview invitation does not prove a stored resume was submitted. Only label a file “submitted” when that exact file/hash appears in the application's employer-confirmed submission snapshot; otherwise call it the current draft/reference copy and identify that limitation. Check the final pack for unsupported claims and status labels, then save the corrected version through workspace operations.
 
+Apply that check to **headings and captions**, not only body text: “matches the submitted resume” is also a submission claim. A candidate report that they submitted something does not identify a verified file snapshot. Check narrow negatives and soft self-claims in every answer; never broaden “I did not manage the dentists' schedules” into a claim about the role's entire scope. Finally compare the contents with promised sections: include the stated reply draft, or remove the promise and say it remains to be prepared. A reply draft is not a sent reply.
+
 ## Calendar and follow-through
 
 Offer calendar holds and reminders after saving the verified logistics. Create or change events only with the candidate's authorization for that account and action. Clearly label tentative holds, preserve the source timezone, verify the returned event, and save its ID/link locally. A proposed time in an email is not an accepted invitation. Update/cancel only the matching authorized event; do not touch unrelated calendars.

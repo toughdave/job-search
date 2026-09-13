@@ -4,14 +4,15 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 import unicodedata
 from pathlib import Path
 import workspace as ws
 
 
 def clean(value):
-    text=unicodedata.normalize('NFKC',value)
-    return ' '.join(''.join(c if c.isalnum() or c in ' -' else ' ' for c in text).split()).strip(' -')
+    text=unicodedata.normalize('NFC',value)
+    return ' '.join(''.join(c if c.isalnum() or unicodedata.category(c).startswith('M') or c in " -.'’" else ' ' for c in text).split()).strip(' -')
 
 
 def filename(name,employer,role,kind,extension):
@@ -19,14 +20,25 @@ def filename(name,employer,role,kind,extension):
     ws.require(extension in ('.pdf','.docx'),'Only reviewed PDF or DOCX uploads are supported.')
     parts=[clean(x) for x in (name,employer,role)]
     ws.require(all(parts),'Name, employer and role must contain usable filename characters.')
-    # Reserve the longer letter label so resume/letter and DOCX/PDF share one stem.
-    budget=80-len(' - Cover Letter.docx')
-    while len(' - '.join(parts))>budget:
-        index=max(range(3),key=lambda i:len(parts[i]))
-        parts[index]=parts[index][:-1].rstrip(' -')
-        ws.require(parts[index],'Could not form a useful short filename.')
     label={'resume':'Resume','cv':'CV','cover_letter':'Cover Letter'}[kind]
-    return ' - '.join(parts)+' - '+label+extension
+    suffix=' - '+label+extension
+    # Identity is never shortened or silently sanitized. Request an explicitly
+    # supported filename name if it cannot be represented safely within the limit.
+    ws.require(parts[0]==' '.join(unicodedata.normalize('NFC',name).split()),'Name contains unsafe filename characters; confirm a supported filename name instead of changing it automatically.')
+    def joined():return ' - '.join(p for p in parts if p)+suffix
+    def fits():return len(joined())<=80 and len(joined().encode('utf-8'))<=255
+    for index,raw in ((2,role),(1,employer)):
+        if fits():break
+        simplified=re.sub(r'\([^()]*\)',' ',raw)
+        simplified=re.split(r'\s+[—–-]\s+|[—–]',simplified,maxsplit=1)[0]
+        parts[index]=clean(simplified)
+        while not fits() and ' ' in parts[index]:parts[index]=parts[index].rsplit(' ',1)[0]
+    # Single unbreakable words can be omitted, never sliced into misleading names.
+    for index in (2,1):
+        if fits():break
+        parts[index]=''
+    ws.require(fits(),'Full name and document label exceed the filename limit; ask for an explicitly approved shorter filename name. Never generate initials automatically.')
+    return joined()
 
 
 def prepare(value,application_id,source,review_file,name,name_fact_id,kind):
@@ -54,7 +66,7 @@ def prepare(value,application_id,source,review_file,name,name_fact_id,kind):
         result=ws.import_file(root,src,relative)
         ws.require(result['sha256']==review['sha256'],'Source changed while making upload copy; do not upload this copy. Review the current source again.')
         ws.require(ws.digest(review_path)==review_hash,'Review record changed; inspect it again before upload.')
-        return {**result,'basename':basename,'review':{'file':review_file,'sha256':review_hash},'reviewed_source':source,
+        return {**result,'basename':basename,'markdown_link':'['+basename+'](<'+ws.inside(root,relative).as_posix()+'>)','review':{'file':review_file,'sha256':review_hash},'reviewed_source':source,
                 'next_action':'Record this upload copy and review reference in the application. Recheck its hash before upload. This validates a review record, not the act of viewing pages.'}
 
 
@@ -63,6 +75,6 @@ def main():
     for flag in ('workspace','application','source','review','name','name-fact-id','kind'):p.add_argument('--'+flag,required=True)
     a=p.parse_args()
     try:print(json.dumps(prepare(a.workspace,a.application,a.source,a.review,a.name,a.name_fact_id,a.kind),ensure_ascii=False,indent=2));return 0
-    except (ws.WorkspaceError,OSError,ValueError,KeyError,TypeError) as e:print('Upload copy not ready: '+str(e));return 2
+    except (ws.WorkspaceError,OSError,ValueError,KeyError,TypeError) as e:print('Upload copy not ready: '+str(e),file=sys.stderr);return 2
 
 if __name__=='__main__':raise SystemExit(main())

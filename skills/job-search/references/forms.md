@@ -12,7 +12,9 @@ Follow [writing](writing.md#cover-letter) for every available letter route, incl
 
 ## Clean upload files
 
-Keep internal versioned originals. After visually reviewing the exact source file, create a byte-identical upload copy with `scripts/uploads.py`; do not upload an internal `resume-v003.pdf`. The basename is at most 80 characters, normally `Name - Employer - Role - Resume.pdf` or a matching `Cover Letter` name, with no internal version/final label. The helper removes unsafe punctuation and shortens the common stem deterministically. Respect any stricter portal limit.
+Keep internal versioned originals. After visually reviewing the exact source file, run `scripts/uploads.py` to create a byte-identical upload copy; opening `--help` is not this operation. This applies when preparing files offline for someone who asks for “ready to upload”, as well as during portal entry. Do not upload or present an internal `resume-v003.pdf` as the ready upload file.
+
+The basename is at most 80 characters, normally `Name - Employer - Role - Resume.pdf`. The full name is preserved, including accents and safe apostrophes. Only when needed, the helper removes parenthetical/dash suffixes and whole trailing words from the role, then employer; it never cuts a word or generates initials. It budgets for the actual document type and extension, so a letter stem can be shorter than a resume stem. Very long unbreakable role/employer text may be omitted. If even the full name plus document label cannot fit safely, ask for a candidate-approved filename name instead of altering identity. Respect any stricter portal limit.
 
 Save a JSON visual-review record in the workspace using actual observations:
 
@@ -27,6 +29,10 @@ python S/scripts/uploads.py --workspace W --application APP_ID --source applicat
 ```
 
 The helper checks paths, name evidence, page coverage and the current hash, then creates an immutable copy under the application. Add its returned file/hash and review reference to the application's upload records. It checks the review record's consistency, not whether the AI actually looked at the pages. Before uploading, verify the copy's hash still matches. A new content hash requires another visual review; a byte-identical rename preserves the reviewed content.
+
+Before saying “ready to upload”, finish this checklist for **each** requested resume/CV and letter: inspect the actual pages; save its JSON review record; execute the helper with that record; verify the returned copy/hash; commit its copy and review references in the application and read them back. Report the actual clean filenames with links. If any step is blocked, name the unfinished step and keep the document labelled draft. Do not claim readiness from export success, a Markdown-only visual note, or a planned helper command. Respect the other format/evidence gates too.
+
+Use the helper's returned `markdown_link` verbatim in the final reply. Never retype or reconstruct its hash directory or filename. Check that each linked target is the returned existing copy. On a later request for the links, rerun the idempotent helper with the current reviewed source if needed, rather than reconstructing paths from memory.
 
 ## Verification messages
 

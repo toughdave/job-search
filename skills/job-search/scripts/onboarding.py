@@ -184,6 +184,9 @@ def ask(value,project,topic_id,dimension,question,expected):
     row=next((r for r in review['topics'] if r['id']==topic_id),None)
     ws.require(row is None or (row['status'] not in ('declined','deferred','not_applicable','no_example') and dimension in row['missing_dimensions']),'Topic is covered or has a saved disposition; reconcile it first.')
     ws.require(question.count('?')+question.count('？')<=1,'Ask one question; split multiple decisions into separate turns.')
+    if topic_id in ('contact-name','contact-email','contact-phone'):
+        contact_fields=[bool(re.search(pattern,question,re.I)) for pattern in (r'\bname\b',r'\be-?mail\b',r'\b(?:phone|telephone|mobile)\b')]
+        ws.require(sum(contact_fields)<=1,'Ask for one contact field per turn: name, email and phone are separate topics.')
     interrogative=r'(?:what|where|when|why|how|which|who|whose|(?:do|does|did|are|is|can|could|would|will|have|has)\s+you)\b'
     clauses=re.split(r'(?:\b(?:and|or|also|plus)\s+|;\s*)',question,flags=re.I)
     alternatives=re.split(r'\bor\s+',question,flags=re.I)

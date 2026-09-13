@@ -2,6 +2,7 @@
 """Observed milestones and confirmed-submission cohort summaries."""
 import argparse
 import json
+import sys
 from datetime import datetime
 import workspace as ws
 
@@ -67,6 +68,6 @@ def main():
     try:
         result=observe(a.workspace,a.application,a.milestone,a.source_id,a.observed_at) if a.command=='observe' else metrics(a.workspace,a.start,a.end)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0
-    except (ws.WorkspaceError,OSError,ValueError,KeyError,TypeError) as e:print('Pipeline operation refused: '+str(e));return 2
+    except (ws.WorkspaceError,OSError,ValueError,KeyError,TypeError) as e:print('Pipeline operation refused: '+str(e),file=sys.stderr);return 2
 
 if __name__=='__main__':raise SystemExit(main())

@@ -19,11 +19,13 @@ Keep a private posting-to-bullet map beside the model: requirement, selected fac
 
 Use a concise, natural voice and ordinary punctuation. Avoid habitual em dashes, repetitive sentence patterns, flattery and corporate boilerplate. Keep gaps in the internal fit map. Do not volunteer “I do not have X” in a resume or letter; answer a direct screening question truthfully and discuss a material gap only when it helps explain relevant transferable evidence.
 
+Soft self-descriptions are claims too. “I learn software quickly”, “adapt easily” and “thrive under pressure” need specific supporting candidate evidence, just like a technical claim. Do not add them to soften a gap or infer them from an unrelated duty. Omit unsupported phrasing, or ask for a real example later if it materially helps. Apply the same check to letters, introductions and screen/interview answers.
+
 ## Cover letter
 
 When the portal accepts a letter, prepare a tailored one unless the candidate opts out or the employer prohibits it. Check optional, additional/supporting-document and text-entry routes. Use the actual employer and role, with no stale names from another application.
 
-Use a brief opening and two or three short evidence paragraphs connecting the candidate's strongest relevant work to this role. Mention at most one material gap when useful; do not turn the letter into a list of deficiencies. Omit salary unless specifically requested, generic praise and desperate appeals. Preserve factual source links internally and use the same clean employer/role filename stem as the resume.
+Use a brief opening and two or three short evidence paragraphs connecting the candidate's strongest relevant work to this role. Mention at most one material gap when useful; do not turn the letter into a list of deficiencies. Omit salary unless specifically requested, generic praise and desperate appeals. Preserve factual source links internally and use consistent clean employer/role filenames; the letter stem may be shorter to meet its actual length limit as described in [forms](forms.md#clean-upload-files).
 
 Before final review, either verify the actual letter attachment/text or record the candidate's opt-out, employer prohibition, genuinely absent route, or precise failed control. If an available control fails, inspect fresh page state and try one supported alternative interaction. If that also fails, disclose the exact problem before submission. A broken optional control is not an absent route. Complete visual review before upload and verify the uploaded letter at the portal's final review.
 
