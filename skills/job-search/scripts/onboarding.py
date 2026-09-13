@@ -185,7 +185,7 @@ def ask(value,project,topic_id,dimension,question,expected):
     ws.require(row is None or (row['status'] not in ('declined','deferred','not_applicable','no_example') and dimension in row['missing_dimensions']),'Topic is covered or has a saved disposition; reconcile it first.')
     ws.require(question.count('?')+question.count('？')<=1,'Ask one question; split multiple decisions into separate turns.')
     interrogative=r'(?:what|where|when|why|how|which|who|whose|(?:do|does|did|are|is|can|could|would|will|have|has)\s+you)\b'
-    clauses=re.split(r'\b(?:and|also|plus)\s+',question,flags=re.I)
+    clauses=re.split(r'(?:\b(?:and|or|also|plus)\s+|;\s*)',question,flags=re.I)
     ws.require(not (len(clauses)>1 and re.search(interrogative,clauses[0],re.I)
                     and any(re.match(interrogative,part,re.I) for part in clauses[1:])),
                'This appears to combine separate questions. Ask one decision now and save the other for a later turn.')
@@ -220,6 +220,30 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
             'capture_instruction':'Compare this saved answer with the full received message, including pasted postings and extra details. A saved file alone cannot prove the composer message was copied completely.'}
 
 
+CAPTURE_INSTRUCTION = 'Compare the saved text and character count with the ENTIRE received message, including requests, pasted postings and extra details. Additional employer-source copies do not replace the original message. This helper cannot see text omitted by the caller.'
+
+
+def check_reply(value,project,reply,expected):
+    """Read-only check of the actual proposed interview reply, not a question summary."""
+    state=ws.load(value);check_project(state,project)
+    ws.require(state['revision']==expected,'Revision conflict: recheck the reply against current state.')
+    review=plan_state(state,value,project)
+    pending=[q for row in review['topics'] for q in row['pending_questions']]
+    ws.require(len(pending)<=1,'Resolve multiple pending questions before replying.')
+    text=reply.strip();ws.require(text,'Proposed reply is empty.')
+    summary=text
+    if pending:
+        question=pending[0]['question'].strip()
+        ws.require(text.endswith(question) and text.count(question)==1,'End the reply with the exact saved pending question, once. Do not replace it with a list of asks.')
+        summary=text[:-len(question)]
+        ws.require(not re.search(r'^\s*(?:\d+[.)]|[-*])\s+',summary,re.M),'Keep this interview reply to a short summary and the one saved question, without a checklist.')
+    request=r'(?:^|[.!\n]\s*)(?:please\s+)?(?:tell me|provide|share|confirm|choose|select|let me know|send me|attach|what|where|when|which|how|would you|could you|can you)\b'
+    ws.require(not re.search(r'[?？]',summary) and not re.search(request,summary,re.I),
+               'Reply contains an additional or unsaved request. Save one question with ask and remove the other asks before checking again.')
+    return {'status':'passed','revision':state['revision'],'pending_question_id':pending[0]['id'] if pending else None,
+            'reply':text,'limitation':'English request heuristic; review meaning too. Only the supplied reply is checked. Send this exact text; changed replies must be checked again.'}
+
+
 def record_statement(value, project, statement_id, text, expected):
     root=ws.checked_root(value);state=ws.load(root)
     # Recording the explicit move request must work before rebind can run.
@@ -235,7 +259,7 @@ def record_statement(value, project, statement_id, text, expected):
     existing=next((r for r in state.get('statements',[]) if r['id']==statement_id),None)
     if existing:
         ws.require(existing['text']==text,'Statement ID already used for different text; use a new message ID for a correction.')
-        return {'statement':existing,'revision':state['revision']}
+        return {'statement':existing,'revision':state['revision'],'captured_characters':len(text),'capture_instruction':CAPTURE_INSTRUCTION}
     sid='statement-'+uuid.uuid4().hex;relative='sources/'+sid+'.txt';path=ws.inside(root,relative)
     with path.open('x',encoding='utf-8') as stream:stream.write(text)
     source={'id':sid,'kind':'candidate_report','recorded_at':ws.now(),'file':relative,'sha256':ws.digest(path)}
@@ -243,7 +267,7 @@ def record_statement(value, project, statement_id, text, expected):
     state['sources'].append(source);state.setdefault('statements',[]).append(record)
     state['session']['next_action']='Map volunteered statement '+statement_id+' into supported facts and coverage; do not invent interview questions.'
     saved=ws.commit(root,state,expected,'Saved exact volunteered candidate statement')
-    return {'statement':record,'revision':saved['revision']}
+    return {'statement':record,'revision':saved['revision'],'captured_characters':len(text),'capture_instruction':CAPTURE_INSTRUCTION}
 
 def plan(value,project):
     return plan_state(ws.load(value),value,project)
@@ -292,25 +316,28 @@ def plan_state(state,value,project):
         'missing_baseline_topics':missing_baseline,
         'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved and history['ready'] and not missing_baseline),
         'unresolved_required_topics':unresolved,
+        'reply_check':'Before every interview reply, including after a fact-heavy statement or when no question is saved, run check-reply on the actual proposed reply. Save one ask first if candidate input is needed; never send a list of missing topics.',
         'instruction':'Review all existing facts and exact answers for each missing dimension before asking. Map supported answers into evidence; do not repeat an answered question. Checked is derived, never an input.'}
 
 def main():
     ws.configure_output()
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
-    for command in ('bind','plan','rebind','ask','save-answer','record-statement'):
+    for command in ('bind','plan','rebind','ask','save-answer','record-statement','check-reply'):
         p=sub.add_parser(command);p.add_argument('--workspace',required=True);p.add_argument('--project',required=True)
-        if command in ('rebind','ask','save-answer','record-statement'):p.add_argument('--expected-revision',type=int,required=True)
+        if command in ('rebind','ask','save-answer','record-statement','check-reply'):p.add_argument('--expected-revision',type=int,required=True)
+        if command=='check-reply':p.add_argument('--reply-file',required=True,help='Full proposed candidate-facing reply, not only its question')
         if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
         if command=='ask':
             p.add_argument('--topic',required=True);p.add_argument('--dimension',required=True);p.add_argument('--question',required=True)
         if command=='record-statement':
-            p.add_argument('--statement-id',required=True);p.add_argument('--text-file',required=True)
+            p.add_argument('--statement-id',required=True);p.add_argument('--text-file',required=True,help='UTF-8 text of the ENTIRE received message, including requests and postings; do not extract only personal facts')
         if command=='save-answer':
             p.add_argument('--question-id',required=True);p.add_argument('--answer-file',required=True,help='UTF-8 text containing the FULL received message, including pasted postings; not an extracted first sentence');p.add_argument('--interpretation',required=True)
     args=parser.parse_args()
     try:
         if args.command=='bind':result=bind(args.workspace,args.project)
         elif args.command=='plan':result=plan(args.workspace,args.project)
+        elif args.command=='check-reply':result=check_reply(args.workspace,args.project,Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision)
         elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
         elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision)
         elif args.command=='record-statement':result=record_statement(args.workspace,args.project,args.statement_id,Path(args.text_file).read_text(encoding='utf-8-sig'),args.expected_revision)

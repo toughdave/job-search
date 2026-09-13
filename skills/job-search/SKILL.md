@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.9.0"
+  version: "1.9.1"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -27,6 +27,8 @@ Read [project onboarding](references/onboarding.md) and [interview and evidence]
 
 Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Say “saved” only after a successful write and readback. In a read-only session or response simulation, do not claim anything was saved or activated. Missing checkmarks are not proof of missing answers.
 
+For both `record-statement` and `save-answer`, copy the **entire received message**, including tailoring requests and pasted postings, then compare the returned text and character count with the original. Save a posting additionally as an employer source; never substitute that copy for the complete message. Source text from a posting is employer information, not proof of candidate experience.
+
 A volunteered message is not a series of interviews. Save the complete message once using `onboarding.py record-statement`; map all supported facts from that source without creating questions that were never asked. If it answers the actual pending question, save the full response with `save-answer` instead. Never reconstruct fictional exact Q&A from resume bullets or a multi-fact message.
 
 Use `onboarding.py ask` and `save-answer` for the question/answer transaction; these update the next action and preserve exact text. Read [state schema and examples](references/state-schema.md) when mapping facts or adding employer entries. The first target-work question uses `target-work` / `occupation`. Location and remote/hybrid preference are separate decisions and separate turns. The helper prevents a second pending question, but you must keep each question itself to one decision.
@@ -45,7 +47,7 @@ Ask only missing details, accept an honest lack of experience, and preserve proj
 
 ## Do the search and application work
 
-Read [search and applications](references/search.md) when screening, searching, preparing forms or handling employer replies. Every recurring search covers unfinished work and fresh discovery in the agreed scope. Record what was actually checked, including blocked sources. Save complete postings when available, deduplicate, and explain fit using sourced evidence. A thin resume means “ask or investigate,” not “no experience.”
+Read [search and applications](references/search.md) when screening, searching, preparing forms or handling employer replies. Every recurring search covers unfinished work and fresh discovery in the agreed scope. Record what was actually checked, including blocked sources. Save complete postings when available, deduplicate, and explain fit using sourced evidence. Before presenting or acting on a fit map, run `documents.py --workspace W --review-fit APPLICATION_ID`; examine supported combined requirements against every linked claim and limit, then split them or use partial for missing duties. A thin resume means “ask or investigate,” not “no experience.”
 
 Read [documents](references/documents.md) when drafting or exporting a resume, CV or letter. Use the bundled layout and export helper or a verified available document tool. Keep dependencies in the owned local runtime cache described in [runtime setup](references/runtime.md). Select relevant truthful evidence, preserve the master, create a new version for each draft, and inspect the actual exported pages. Present the documents and one next action, not implementation details.
 
@@ -63,4 +65,4 @@ During onboarding, once target work and region are known, read [daily routine](r
 
 ## Finish each interaction
 
-Save and verify meaningful changes before responding. Summarize the useful result in a few sentences and show the next question **or** next action. Do not list file-maintenance chores. Before sending an interview reply, verify that its only question matches the one saved pending question. Do not add an approval question beside an experience question; queue that decision for a later turn. A turn that needs a candidate answer must wait for that answer; silence is not agreement. If tools are unavailable, identify the single missing capability honestly and preserve progress instead of pretending the action succeeded.
+Save and verify meaningful changes before responding. Summarize the useful result in a few sentences and show the next question **or** next action. Do not list file-maintenance chores. Before **every** interview reply, including the first response to a fact-heavy message and replies with no saved question, save the full proposed reply to W/scratch and run `onboarding.py check-reply --workspace W --project P --reply-file FILE --expected-revision N`. If input is needed but no question is pending, call `ask` first. Fix a failed check before sending; output only the exact checked reply, without a “check passed” preface, validation commentary or quotation wrapper. Review its meaning too: requests such as “share your phone number” count as questions even without a question mark. Never present the checklist of missing topics as a numbered interview. A pending reply ends with the one saved question; other missing details stay internal. Do not add an approval question beside an experience question; queue that decision for a later turn. A turn that needs a candidate answer must wait for that answer; silence is not agreement. If tools are unavailable, identify the single missing capability honestly and preserve progress instead of pretending the action succeeded.

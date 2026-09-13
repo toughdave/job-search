@@ -56,7 +56,7 @@ def validate_model(model,state):
     return model
 
 
-def wording_review(model,state,root):
+def wording_review(model,state,root,review_items=None):
     """Surface vocabulary needing evidence review; lexical overlap is not truth."""
     facts={f['id']:f for f in state['profile']['facts']}
     sources={s['id']:s for s in state['sources']}
@@ -78,7 +78,7 @@ def wording_review(model,state,root):
             result.setdefault(stem.rstrip('e'),word)
         return result
     posting=terms(' '.join(posting_text));rows=[]
-    for item in items(model):
+    for item in (items(model) if review_items is None else review_items):
         evidence=[facts[f] for f in item['fact_ids']]
         supported=terms(' '.join(f['claim'] for f in evidence));used=terms(item['text'])
         missing=set(used)-set(supported)
@@ -90,6 +90,45 @@ def wording_review(model,state,root):
     return {'status':'review_required' if rows else 'no_lexical_flags','items':rows,'posting_source_ids':posting_ids,
             'limitation':'English vocabulary heuristic, not a semantic verifier. Synonyms may be flagged; matching words can still contradict evidence or its limits.',
             'next_action':'Check each phrase against the linked claims and original sources. Remove unsupported duties or context; ask only if the missing fact matters. Never approve a phrase solely because it appears in the posting.'}
+
+def fact_source_review(state,root,fact_ids):
+    """Compare linked claims with readable original sources, including negative claims."""
+    sources={s['id']:s for s in state['sources']};facts={f['id']:f for f in state['profile']['facts']}
+    flags=[];manual=[]
+    for fid in sorted(set(fact_ids)):
+        fact=facts[fid];texts=[]
+        for sid in fact['source_ids']:
+            source=sources[sid];path=ws.inside(root,source['file'])
+            if path.suffix.lower() in ('.txt','.md'):texts.append(path.read_text(encoding='utf-8-sig'))
+            elif source['kind']=='candidate_answer' and path.suffix.lower()=='.json':
+                data=json.loads(path.read_text(encoding='utf-8-sig'))
+                if isinstance(data,dict) and isinstance(data.get('answer'),str):texts.append(data['answer'])
+                else:manual.append({'fact_id':fid,'source_id':sid,'reason':'Original answer text is not available in the expected field.'})
+            else:manual.append({'fact_id':fid,'source_id':sid,'reason':'Read or render this original source; plain-text comparison is unavailable.'})
+        if not texts:continue
+        source_state={'sources':[],'profile':{'facts':[{'id':fid,'claim':'\n'.join(texts),'limits':'Read the original source in context; pasted job duties are not candidate experience.'}]}}
+        reviewed=wording_review({},source_state,root,[{'text':fact['claim']+' '+fact.get('limits',''),'fact_ids':[fid]}])
+        for row in reviewed['items']:
+            row['source_ids']=fact['source_ids'];flags.append(row)
+    return {'status':'review_required' if flags or manual else 'no_lexical_flags','items':flags,'manual_sources':manual,
+            'limitation':'English vocabulary heuristic, not entailment. Source messages may also quote job postings. Compare meaning and negative-claim scope, not just shared words.'}
+
+
+def fit_review(state,root,application_id):
+    application=next((a for a in state['applications'] if a['id']==application_id),None)
+    ws.require(application is not None,'Unknown application ID for fit review.')
+    supported=[(i,m) for i,m in enumerate(application.get('fit',[])) if m['assessment']=='supported']
+    entries=[{'text':m['requirement'],'fact_ids':m['fact_ids']} for _,m in supported]
+    result=wording_review({},state,root,entries)
+    result['application_id']=application_id
+    result['supported_requirements_checked']=len(entries)
+    result['fact_source_review']=fact_source_review(state,root,[fid for m in application.get('fit',[]) for fid in m.get('fact_ids',[])])
+    if result['fact_source_review']['status']=='review_required':result['status']='review_required'
+    for row in result['items']:
+        row['fit_indices']=[i for i,m in supported if m['requirement']==row['text'] and m['fact_ids']==row['fact_ids']]
+    result['next_action']='Review every supported requirement against its linked claims and limits. Split combined duties or use partial with the unsupported component in remaining. Book appointments does not establish confirm appointments. Flags are prompts for judgment, not automatic downgrades.'
+    return result
+
 
 def build_docx(model,path):
     from docx import Document
@@ -269,9 +308,14 @@ def export(value,model,stem,arial=None):
 
 def main():
     ws.configure_output()
-    p=argparse.ArgumentParser(description=__doc__); p.add_argument('--workspace',required=True); p.add_argument('--model',required=True); p.add_argument('--stem'); p.add_argument('--arial','--font',dest='arial');p.add_argument('--review-only',action='store_true')
+    p=argparse.ArgumentParser(description=__doc__); p.add_argument('--workspace',required=True); p.add_argument('--model'); p.add_argument('--stem'); p.add_argument('--arial','--font',dest='arial');p.add_argument('--review-only',action='store_true');p.add_argument('--review-fit',metavar='APPLICATION_ID')
     a=p.parse_args()
     try:
+        if a.review_fit:
+            ws.require(not (a.model or a.stem or a.review_only),'Use --review-fit separately from document model/export options.')
+            result=fit_review(ws.load(a.workspace),ws.checked_root(a.workspace),a.review_fit)
+            print(json.dumps(result,indent=2));return 0
+        ws.require(a.model,'--model is required unless using --review-fit APPLICATION_ID.')
         model=json.loads(Path(a.model).read_text(encoding='utf-8-sig'))
         if a.review_only:
             state=ws.load(a.workspace);validate_model(model,state);result=wording_review(model,state,ws.checked_root(a.workspace))

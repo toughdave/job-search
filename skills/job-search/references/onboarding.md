@@ -130,3 +130,17 @@ After target work and region are known, follow [daily routine](routine.md). The 
 Use `onboarding.py record-statement --workspace W --project P --statement-id MESSAGE_ID --text-file UTF8_FILE --expected-revision R` for one complete unsolicited message. Keep MESSAGE_ID stable for retries. It saves one candidate-report source and one immutable statement without inventing interview questions. Map that source into as many supported facts/topic dimensions as it actually covers, with `answer_ids: []` when no question was asked. A volunteered explicit history or format approval can use `statement_id` instead of `answer_id`; never fill both.
 
 Use `save-answer` only for the real pending question, preserving the full response. When sending the next reply, read the saved pending question and ask only that question; do not add another question in an introduction, example, approval request or final sentence. Save before sending and wait. A candidate may volunteer multiple facts; one-question pacing constrains the AI's questioning, not the candidate's answer.
+
+## Check the actual reply and full input
+
+Before sending each interview reply, including after volunteered facts and when `questions` is empty, run:
+
+```sh
+python S/scripts/onboarding.py check-reply --workspace W --project P --reply-file W/scratch/reply.txt --expected-revision N
+```
+
+Write the entire proposed reply in that UTF-8 file. If an answer is needed, save one `ask` first, then end the reply with that exact pending question. Keep the preceding progress summary short and declarative. Do not send numbered requests, combine email and phone, or add another employer example or scheduling choice beside it. Send the checked text unchanged and wait. With no pending question, a declarative progress update is valid; an unsaved request is not. The check reads state without changing it, checks its revision and uses English request heuristics; the AI must still judge meaning and must actually call it. It cannot intercept an unsubmitted composer reply.
+
+The compound-question guard also recognizes `or` and semicolons between interrogative clauses. A genuine single alternative such as “Would you prefer remote or hybrid work?” remains valid.
+
+Both `record-statement --text-file` and `save-answer --answer-file` take the **entire received message**, including extra requests, pasted postings, line breaks and punctuation. Verify the returned full text and `captured_characters` against the original before extracting facts. Do not reduce a statement to its personal-fact sentences. A posting can also be saved as an employer source; that extra copy never replaces the complete received message and never establishes that the candidate performed its duties. The helper cannot detect content that the caller omits.
