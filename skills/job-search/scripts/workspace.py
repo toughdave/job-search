@@ -227,6 +227,8 @@ def validate(state, root):
     linkedin.validate(state,root)
     import formatting
     formatting.validate(state)
+    import pipeline
+    pipeline.validate(state)
     return state
 
 def load(root):
@@ -279,6 +281,8 @@ def status_note(root,state):
     p.write_text(txt,encoding='utf-8')
 
 def guard_history(old,new,allow_rebind=False):
+    import pipeline
+    pipeline.guard_history(old,new)
     import formatting
     formatting.guard_history(old,new)
     import linkedin

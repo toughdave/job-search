@@ -63,3 +63,5 @@ Check `pagination.matches_approved_length` and every `underfilled_pages` flag. T
 Font loading stops once the document's glyphs are covered. ReportLab's bundled Vera family supplies a basic Latin fallback if system fonts are unavailable; unsupported glyphs still fail clearly. Arabic/Hebrew and other right-to-left text requires a shaping-capable alternative exporter; the helper reports that limitation before publishing files.
 
 When wording review flags a new duty or responsibility, remove it or cite the original evidence before retaining it. “Served customers and processed payments” does not by itself establish retail sales responsibility; preserve customer service/payment processing wording unless actual sales duties are confirmed. Do not treat this as a harmless stylistic substitution.
+
+Follow [writing craft](writing.md) for bullet selection, tone and cover-letter completion, and [forms](forms.md#clean-upload-files) for byte-identical clean upload filenames after actual-file visual review.

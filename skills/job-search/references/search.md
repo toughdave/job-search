@@ -48,3 +48,5 @@ Keep negative claims scoped too: “I have not used Dentrix” does not establis
 The result also includes `explanation_review` for saved `remaining` notes, across supported/partial/gap/unknown assessments. Reconcile those notes whenever a linked fact changes: changing a fact ID alone does not correct stale prose. Review explanations with no linked evidence manually; do not turn missing evidence into a claim of no experience.
 
 Resolve flags that change the claimed duty, environment or level of responsibility before retaining a supported assessment. Customer service does not establish a fast-paced office environment; keep that component partial/unknown unless a source establishes it. Do not dismiss such words as cosmetic synonyms.
+
+Use [discovery](discovery.md) for adaptive queries and screening, [forms](forms.md) during entry, and [career stages](career-stages.md) for every actionable employer response. Read HTML email bodies when plain text is empty or boilerplate. Persist a confirmed submission and its receipt before advancing to another application. Record only sourced observations under [measurement](measurement.md).

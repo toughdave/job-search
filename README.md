@@ -169,6 +169,10 @@ Give corrections directly in the conversation, for example:
 
 Review the employer, role and final documents before authorizing submission. If information or access is missing, the AI should explain the next action.
 
+You can supply several resume versions; the AI reconciles their evidence before using old claims. It prepares tailored letters where accepted and uses clean upload filenames after visual review.
+
+When an employer replies, return to this project and say **“Help me prepare for this next step.”** The AI can build a recruiter-screen or interview pack, prepare for an assessment, review an offer, and record an interview debrief. Sending messages, sharing sensitive documents and creating calendar events still require your authorization.
+
 <a name="coming-back-later"></a>
 
 ## 6. Coming back later

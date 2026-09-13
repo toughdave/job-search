@@ -186,8 +186,17 @@ def ask(value,project,topic_id,dimension,question,expected):
     ws.require(question.count('?')+question.count('？')<=1,'Ask one question; split multiple decisions into separate turns.')
     interrogative=r'(?:what|where|when|why|how|which|who|whose|(?:do|does|did|are|is|can|could|would|will|have|has)\s+you)\b'
     clauses=re.split(r'(?:\b(?:and|or|also|plus)\s+|;\s*)',question,flags=re.I)
-    relocation_choice=bool(re.fullmatch(r'(?:are you|would you be) (?:open|willing|prepared) to (?:relocate|relocating|move|moving),? or (?:do|would) you (?:want|prefer) to (?:stay|remain) local[?？]?',question.strip(),re.I))
-    ws.require(relocation_choice or not (len(clauses)>1 and re.search(interrogative,clauses[0],re.I)
+    alternatives=re.split(r'\bor\s+',question,flags=re.I)
+    choice=False
+    if len(alternatives)==2:
+        first,second=(part.strip() for part in alternatives)
+        polar=bool(re.match(r'(?:would|do|are|can|could|will|should)\b',first,re.I))
+        preference=bool(re.match(r'(?:would you (?:rather|prefer)|do you (?:want|prefer)|should I)\b',second,re.I))
+        verb=lambda part:re.match(r'(?:do|are|would|can|could|will|should)\s+(?:you|I)\s+\w+',part,re.I)
+        left,right=verb(first),verb(second)
+        shared=bool(left and right and left.group().casefold()==right.group().casefold())
+        choice=polar and (preference or shared)
+    ws.require(choice or not (len(clauses)>1 and re.search(interrogative,clauses[0],re.I)
                     and any(re.match(interrogative,part,re.I) for part in clauses[1:])),
                'This appears to combine separate questions. Ask one decision now and save the other for a later turn.')
     if topic_id=='linkedin':
