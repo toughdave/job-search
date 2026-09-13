@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import socket
 import uuid
@@ -83,8 +84,32 @@ def probe(scratch):
             bitmap.close()
             page.close()
     return {'packages': versions, 'checks': ['imports', 'timezone_data', 'docx_readback',
-            'pdf_text', 'pdf_render'], 'docx_visual_review': 'requires_available_renderer',
+            'pdf_text', 'pdf_render'], 'docx_visual_review': 'not_performed', 'renderers':detect_renderers(),
             'web_and_scheduler': 'check_in_host', 'candidate_script_fonts': 'check_with_actual_text'}
+
+
+def detect_renderers():
+    """Probe PATH and standard installations without installing or converting files."""
+    candidates=[Path(p) for name in ('soffice','libreoffice') if (p:=shutil.which(name))]
+    if os.name=='nt':
+        for base in {os.environ.get('ProgramFiles',r'C:\Program Files'),os.environ.get('ProgramFiles(x86)',r'C:\Program Files (x86)')}:
+            candidates.extend(Path(base)/'LibreOffice/program'/name for name in ('soffice.com','soffice.exe'))
+    elif sys.platform=='darwin':
+        candidates.append(Path('/Applications/LibreOffice.app/Contents/MacOS/soffice'))
+    checked=set();found=[]
+    for candidate in candidates:
+        path=candidate.resolve()
+        if str(path) in checked or not path.is_file():continue
+        checked.add(str(path))
+        try:
+            result=subprocess.run([str(path),'--version'],capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=15)
+            version=(result.stdout+'\n'+result.stderr).strip()
+            if result.returncode==0 and 'LibreOffice' in version:
+                found.append({'name':'LibreOffice','path':str(path),'version':version[:240]})
+                break
+        except (OSError,subprocess.TimeoutExpired):continue
+    return {'docx_converters':found,'status':'available' if found else 'not_found',
+            'scope':'PATH and standard LibreOffice locations; detection is not an actual DOCX layout review.'}
 
 
 def cache_base():
@@ -117,7 +142,73 @@ def prepare_home(root,state,check_only):
         ws.atomic_json(marker,{'format':2,'workspace_id':state['workspace_id']})
     if not check_only:
         for name in ('.gitignore','.ignore'):(home/name).write_text('*\n',encoding='utf-8')
+        owner=json.loads(marker.read_text(encoding='utf-8'));owner['records_path']=str(root);ws.atomic_json(marker,owner)
     return home
+
+
+def list_caches():
+    base=cache_base();parent=ws.inside(base,'workspaces');rows=[]
+    if not parent.is_dir():return {'caches':rows}
+    for child in sorted(parent.iterdir()):
+        try:
+            home=ws.inside(base,'workspaces/'+child.name);marker=ws.inside(home,'setup-owner.json')
+            if not marker.is_file():continue
+            owner=json.loads(marker.read_text(encoding='utf-8'));wid=owner.get('workspace_id')
+            if owner.get('format')!=2 or home!=runtime_home({'workspace_id':wid}):continue
+            rows.append({'workspace_id':wid,'cache_path':str(home),'records_path':owner.get('records_path'),
+                         'records_path_exists':Path(owner['records_path']).is_dir() if owner.get('records_path') else None})
+        except (OSError,ValueError,TypeError,KeyError,AttributeError):continue
+    return {'caches':rows,'instruction':'A missing records path may mean a moved project. Remove only a candidate-selected cache after preview and explicit approval.'}
+
+
+def remove_cache(value=None,workspace_id=None,confirm=None):
+    """Preview, then remove only owned package trees; keep records and the owner marker."""
+    root=ws.checked_root(value) if value else None
+    state=ws.load(root) if root else {'workspace_id':workspace_id}
+    wid=state['workspace_id']
+    ws.require(isinstance(wid,str) and str(uuid.UUID(wid))==wid,'A valid recorded workspace ID is required.')
+    home=runtime_home(state)
+    for parent in [home,*home.parents]:
+        ws.require(not (parent/'SKILL.md').exists() and not (parent/'skills/job-search/SKILL.md').exists(),'Refuse cleanup inside a public checkout or installed skill.')
+    ws.require(root is None or not home.is_relative_to(root),'Cache must be outside candidate records.')
+    marker=ws.inside(home,'setup-owner.json')
+    owner=json.loads(marker.read_text(encoding='utf-8'))
+    ws.require(owner.get('format')==2 and owner.get('workspace_id')==wid,'Foreign or unowned cache; nothing removed.')
+    ws.require(not Path(sys.executable).resolve().is_relative_to(home),'Use a bootstrap interpreter outside this cache for cleanup.')
+    record=ws.inside(root,'.runtime/runtime.json') if root else None
+    prior=json.loads(record.read_text(encoding='utf-8')) if record and record.is_file() else None
+    ws.require(prior is None or prior.get('workspace_id')==wid,'Foreign runtime record; nothing removed.')
+    with runtime_lock(home):
+        keep={'setup-owner.json','setup.lock','.gitignore','.ignore'}
+        children=list(home.iterdir())
+        package_name=lambda name:name in ('venv','downloads') or re.fullmatch(r'(?:venv|legacy)-preserved-[0-9a-f]{32}',name)
+        targets=[ws.inside(home,p.name) for p in children if package_name(p.name)]
+        preserved=[p.name for p in children if p.name not in keep and not package_name(p.name)]
+        # Check the entire scope before deletion. rmtree unlinks symlinks without following them.
+        size=0
+        for target in targets:
+            paths=[target]
+            if target.is_dir():
+                for parent,dirs,files in os.walk(target,followlinks=False):
+                    paths.extend(Path(parent)/name for name in dirs+files)
+            for path in paths:
+                if path.is_symlink():
+                    ws.require(path.parent.resolve().is_relative_to(home),'Link parent escapes cache.')
+                    continue
+                ws.require(not (getattr(path.lstat(),'st_file_attributes',0)&0x400),'Refuse cache cleanup through a Windows reparse point.')
+                ws.inside(home,path.relative_to(home).as_posix())
+                if path.is_file():size+=path.stat().st_size
+        result={'workspace_id':wid,'cache_path':str(home),'targets':[str(p) for p in targets],'preserved_other_entries':preserved,'bytes':size,'status':'preview',
+                'instruction':'After candidate approval, repeat with --confirm-workspace-id and this workspace ID. Candidate records and the small ownership marker remain; packages can be installed again.'}
+        if confirm is None:return result
+        ws.require(confirm==wid,'Cleanup confirmation differs from the selected workspace.')
+        for target in targets:
+            ws.require(target.resolve().is_relative_to(home.resolve()),'Removal escaped the verified cache.')
+            if target.is_dir():shutil.rmtree(target)
+            else:target.unlink()
+        if prior is not None:
+            prior.update(status='cache-removed',removed_at=ws.now());ws.atomic_json(record,prior)
+        result['status']='removed';return result
 
 
 def unlock_runtime(home,token):
@@ -241,10 +332,18 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace');parser.add_argument('--check-only',action='store_true')
     parser.add_argument('--uv');parser.add_argument('--unlock-token');parser.add_argument('--preflight',action='store_true')
+    parser.add_argument('--detect-renderers',action='store_true');parser.add_argument('--list-caches',action='store_true')
+    parser.add_argument('--remove-cache',action='store_true');parser.add_argument('--cache-workspace-id');parser.add_argument('--confirm-workspace-id')
     parser.add_argument('--probe',help=argparse.SUPPRESS)
     args=parser.parse_args()
     try:
-        result=preflight() if args.preflight else probe(args.probe) if args.probe else setup(args.workspace,args.check_only,args.uv,args.unlock_token)
+        ws.require(sum(bool(x) for x in (args.preflight,args.probe,args.detect_renderers,args.list_caches,args.remove_cache,args.check_only,args.unlock_token))<=1,'Choose one runtime operation.')
+        ws.require(not (args.cache_workspace_id or args.confirm_workspace_id) or args.remove_cache,'Cache identity/confirmation flags require --remove-cache.')
+        ws.require(not (args.workspace and args.cache_workspace_id),'Choose records or an orphaned cache ID, not both.')
+        if args.detect_renderers:result=detect_renderers()
+        elif args.list_caches:result=list_caches()
+        elif args.remove_cache:result=remove_cache(args.workspace,args.cache_workspace_id,args.confirm_workspace_id)
+        else:result=preflight() if args.preflight else probe(args.probe) if args.probe else setup(args.workspace,args.check_only,args.uv,args.unlock_token)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0
     except (ws.WorkspaceError,OSError,ValueError,ImportError,AttributeError,subprocess.SubprocessError) as error:
         print('Runtime setup incomplete: '+str(error),file=sys.stderr);return 2

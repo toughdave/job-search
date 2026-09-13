@@ -8,6 +8,20 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 ## First time: step by step
 
+### Prerequisites and dependencies
+
+Use a signed-in Codex or Claude Code session with a local project folder, file read/write permission and internet access. Bring your resume if you have one; starting without a resume is supported. The AI runs the setup steps for you.
+
+| Tool | Purpose | Who handles it |
+| --- | --- | --- |
+| Python 3.9+ | Save evidence and run helpers. A maintained 3.12+ runtime is preferred for new setup. | The AI checks an existing interpreter or arranges a private one with uv. |
+| python-docx, ReportLab, pypdf, pypdfium2, tzdata | Create Word/PDF files, read them back, render PDF pages and interpret timezones. | The AI installs the shipped requirements in this search's private runtime. |
+| A visual viewing tool | Inspect every page of the actual upload document. | The AI uses the host's image/PDF viewing capability. |
+| Word, LibreOffice or another DOCX renderer | Check actual Word-document layout when that format will be uploaded. | The AI checks converters, including standard LibreOffice locations outside PATH. |
+| Node.js 22.20+ | Run the optional npx skill installer. | Optional. Download-and-copy installation needs neither Node nor Git. |
+
+Software packages stay in a local cache outside your records. The [runtime instructions](../skills/job-search/references/runtime.md) cover checks, setup, repair and cleanup. If downloads or a required viewing tool are unavailable, the interview can continue with supported local saves, but affected document uploads remain pending. An ordinary browser chat cannot gain local file access simply by receiving this skill.
+
 ### 1. Open Codex or Claude Code
 
 **Need the desktop app? Choose your computer below.** These official pages let you select and download the app before returning here.
@@ -130,6 +144,8 @@ After reviewing your experience and target destination, the AI recommends one or
 When enough is known and the tools are available, the AI works toward a suitable application draft. Open its documents, check the facts, and give corrections in the conversation. For example: `That role was volunteering. Please correct it.`
 
 If it cannot search the web, it may ask for a job posting. If a required fact or tool is missing, it should explain the next action instead of claiming the application is ready. Review the employer, role and document versions before authorizing a final submission.
+
+**Visual review happens before upload.** The AI opens every page of the actual resume/CV file it will attach, checks spacing, alignment, clipping, page breaks and readability, and corrects problems. It inspects corrected versions again and records the reviewed file's hash. For a Word upload, it renders that exact DOCX through an available office converter; a separately generated PDF does not verify the DOCX. If it cannot view the required file, it keeps the draft and pauses the upload. This applies to manual applications and scheduled job hunting alike.
 
 **That is the first-time process. The sections below are for later visits or optional help.**
 

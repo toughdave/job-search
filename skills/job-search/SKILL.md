@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.8.0"
+  version: "1.9.0"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -50,6 +50,8 @@ Read [search and applications](references/search.md) when screening, searching, 
 Read [documents](references/documents.md) when drafting or exporting a resume, CV or letter. Use the bundled layout and export helper or a verified available document tool. Keep dependencies in the owned local runtime cache described in [runtime setup](references/runtime.md). Select relevant truthful evidence, preserve the master, create a new version for each draft, and inspect the actual exported pages. Present the documents and one next action, not implementation details.
 
 Prepare supported application fields through final review within existing authorization. Ask for explicit approval for the specific final submission if not already authorized. Login, CAPTCHA and live assessments stay with the person under the harness's rules. Never invent an approval or reuse another candidate's consent. Confirm the employer's receipt before marking submitted; a report of clicking Submit without confirmation stays unverified. Posting closure is separate from the application outcome.
+
+Before uploading any generated resume/CV or letter, visually inspect every page of the actual upload file under [document quality gates](references/documents.md#quality-gate). Correct defects and inspect the new version again. Text extraction and a separate model-generated PDF do not verify an actual DOCX's layout. Record the inspected file's hash and pages; changed files require a new review. If visual inspection is unavailable, retain the draft and pause its upload.
 
 ## Continue, goals and optional automation
 

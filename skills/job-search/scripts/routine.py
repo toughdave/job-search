@@ -150,6 +150,7 @@ def prompt(root, project):
         'Review urgent employer actions and the entire active backlog; read authorized mail only if configured. Search fresh listings using every required source and the evidence-supported titles in the saved plan. '
         'Record exact queries, times, inspected URLs/counts, blocked sources and saved postings. Deduplicate employer/requisition and canonical URL before preparing truthful applications. '
         'Within the saved budget, advance the best supported matches through reviewed drafts and exact screening Q&A. Do not guess missing answers, submit applications, send messages or create calendar events without their specific authorization.\n'
+        'Before uploading any generated application document, visually inspect every page of that exact file following references/documents.md. Record its hash and inspect corrected versions again. A separate PDF does not verify DOCX layout. If viewing is unavailable, pause that upload and save the draft.\n'
         'Save progress after each meaningful action. Reconcile pending external actions before retrying. At the time limit or a blocker, save incomplete coverage and the next action. '
         'Complete the existing run only with evidence for all required backlog, discovery, deduplication and preparation-or-no-fit checks. '
         'Follow the saved notification choice; report useful results, failures or a needed decision, and keep unchanged results quiet when requested. '

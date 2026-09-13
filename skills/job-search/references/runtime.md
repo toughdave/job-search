@@ -42,6 +42,8 @@ After verification, the helper moves its owned legacy `W/.runtime/job-search-ven
 
 Before announcing that the full workflow is ready, also check what the intended work requires:
 
+Run `setup_runtime.py --detect-renderers` to check PATH and standard LibreOffice installations, including Program Files on Windows and `/Applications/LibreOffice.app` on macOS. Use the returned absolute executable path. Successful `--version` detection is not a visual review: follow the [document quality gate](documents.md#quality-gate) to render and inspect the actual file before uploading it.
+
 - **Actual resume input:** verify readable text; scanned PDFs may require the host's OCR tool. Request readable text only when no suitable OCR capability is available.
 - **Fonts:** verify the candidate's actual script and glyphs with the exporter. If missing, obtain a suitable licensed font from its official source into the private tools area, or use a verified host document tool. Do not claim support for an untested writing system.
 - **PDF review:** the installed `pypdfium2` can render page images locally. The AI must inspect every final page; creating an image does not count as inspecting it.
@@ -50,6 +52,12 @@ Before announcing that the full workflow is ready, also check what the intended 
 - **Scheduled work:** save the verified interpreter path with the local routine instructions. Check native scheduler availability and read back its configuration separately. No dependency install activates a timer or grants consent.
 
 Install capability-specific extras when needed and authorized; do not install an entire browser/office stack unnecessarily. A dependency failure can leave interviewing available while export or automation stays pending. Never present that partial state as a fully working installation.
+
+## Runtime cache cleanup
+
+Cleanup is optional and candidate-directed. Use a healthy bootstrap Python outside the cache. `setup_runtime.py --remove-cache --workspace W` previews the owned cache, exact package paths and approximate bytes. Show the candidate that preview; after explicit removal approval, repeat with `--confirm-workspace-id ID`. The helper keeps candidate records and its small owner marker, refuses a foreign owner or active setup lock, and marks the runtime for reinstallation. Close other work using that runtime first. It removes preserved environments and downloads in that same cache too.
+
+For an abandoned project, `--list-caches` reads only job-search's cache ownership records. A missing records path may mean a project move; do not classify or remove it automatically. Ask the candidate to select the cache, then preview with `--remove-cache --cache-workspace-id ID`. The same confirmation flag is needed for removal. Never scan unrelated folders or delete a cache selected only by age. The helper rejects unsafe paths and junctions; it unlinks internal symbolic links without following their targets. Normal setup recreates removed software when the search resumes.
 
 ## Node and the optional CLI
 

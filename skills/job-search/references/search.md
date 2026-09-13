@@ -12,6 +12,8 @@ Check mandatory/equivalent/preferred wording, work location, central duties, cre
 
 For each advancing application, create a saved posting, requirement-to-fact map, draft resume/CV, optional letter, exact screening Q&A, and a clear next action. Keep each application and draft version separate. Preserve master material. Review all parsed portal fields and attachments after upload.
 
+Before any document upload, complete the [visual quality gate](documents.md#quality-gate) for that exact file and verify its hash still matches the review. Correct and re-inspect changed versions. If viewing/rendering is unavailable, pause the upload while continuing other authorized preparation. Checking parsed fields after upload does not replace the pre-upload visual review.
+
 ## Submission and recovery
 
 Before submitting, show employer, role, selected document versions and unresolved items. Record the specific candidate authorization. Save a `pending_actions` entry before the external action, with application ID and intended action. If the session is interrupted, inspect the employer portal/receipt before retrying. Close the pending action only after the result is known.

@@ -30,6 +30,10 @@ Resolve `python` to the detected runtime (`python3` on many Macs/Linux systems; 
 
 ## Resume intake is a real check
 
+For `save-answer`, copy the **entire received message**, including a pasted posting, additional facts, punctuation and line breaks. Do not keep only the sentence that answers the pending question. Read back `answer.answer` and `captured_characters` against the received message. This checks your copy, not an automatic connection to the composer. You may also preserve the posting separately as an employer source; that does not replace the full original message, and posting duties must never become candidate facts.
+
+Use topic `linkedin-url` / dimension `url` for the profile URL or its inclusion/omission on the resume. Topic `linkedin` / dimension `decision` is solely the optional profile review choice. These are separate questions and separate decisions. The helper catches common English topic mismatches and obvious compound interrogatives; you must still check the meaning and keep each turn to one decision in every language.
+
 Inspect the current attachments, supplied paths and this workspace's saved sources. An installation is not evidence of an attachment. A file icon or the candidate saying “yes” is not proof that the file was received or read.
 
 - If a resume is actually available, preserve the source, read/extract it, save readable text, and record `resume.status=read`, the original resume source ID(s), and `text_source_id`. The helper requires a saved `resume` source plus nonempty UTF-8 TXT/MD text. Check extraction meaning and completeness yourself; the helper cannot prove the extraction matches the original.
@@ -63,6 +67,8 @@ Build an **employer/role-period inventory** before declaring history coverage co
 With a resume, extract each employer, title, period and bullet into sourced facts and reconcile the list with the candidate. Without a resume, ask for the most recent employer or work arrangement, then the role, start and end period in separate turns where missing. Ask about responsibilities and examples for that entry, then ask for another employer. Include self-employment and volunteering under their actual category. If there is no employment history, record that answer and use study, projects or volunteering where available.
 
 Ask explicitly whether any other employers or periods remain to be added. A readable resume, a list of roles, or silence does not confirm an exhaustive inventory. Save the exact yes/no answer and the inventory it confirms in `history_reviews`. If the candidate says there are more, keep collecting them. If they pause or decline, preserve progress and leave full-history confirmation pending; useful drafts can still proceed.
+
+Reuse the latest history review when its inventory, candidate source and status are unchanged. Do not append a second confirmation from the same statement. A changed inventory, decision or genuinely new candidate confirmation can produce a new review. Historical duplicates remain readable; do not rewrite or delete old evidence to tidy them.
 
 For **each entry**, add a required shared `profile` topic with dimension `responsibilities`, and at least one required occupation-specific `example` topic, both with `experience_id`. Title them with employer, role and period. Review all existing bullets and answers first: use already supported details; ask targeted follow-ups for vague duties, outcomes, tools, individual contribution or distinctive achievements. Add complementary topics where different bullets or a posting reveal a meaningful gap, not a fixed two-story cap across the whole career.
 

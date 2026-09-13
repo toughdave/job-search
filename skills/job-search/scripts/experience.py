@@ -2,6 +2,19 @@
 import workspace as ws
 
 
+def guard_reviews(old, new):
+    """Reject new duplicate confirmations without invalidating historical records."""
+    previous=old.get('onboarding',{}).get('history_reviews',[])
+    current=new.get('onboarding',{}).get('history_reviews',[])
+    def signature(review):
+        return (review.get('status'),tuple(sorted(review.get('experience_ids',[]))),
+                tuple(sorted(review.get('resume_source_ids',[]))),tuple(sorted(review.get('source_ids',[]))),
+                review.get('answer_id'),review.get('statement_id'))
+    for index in range(max(1,len(previous)),len(current)):
+        ws.require(signature(current[index])!=signature(current[index-1]),
+                   'History inventory already confirmed by this answer/statement. Reuse the latest review; append only a changed inventory, decision or new candidate confirmation.')
+
+
 def validate(state):
     ob=state['onboarding']
     entries=ws.indexed(ob.get('experiences',[]),'experiences')

@@ -23,6 +23,19 @@ flowchart TD
 
 ## First time: step by step
 
+### What you need before starting
+
+- **An AI app and account:** Codex or Claude Code with access to local projects and files. Download links are in step 1 below.
+- **A dedicated project folder:** the AI needs permission to read your inputs and save your records there.
+- **Internet access:** needed to download the skill, set up missing software and search for current jobs.
+- **Your resume, if you have one:** PDF or Word is useful; you can also start without one.
+
+**The AI handles dependencies.** It checks for Python 3.9+ (preferring a maintained 3.12+ runtime), arranges a private Python if needed, and installs the document and timezone packages in a separate local cache. You do not need to install Node or Git for the download-and-copy route. The optional `npx` terminal installer needs Node.js 22.20+.
+
+PDF viewing is required to inspect generated pages. If a Word document will be uploaded, the AI also needs Word, LibreOffice or another available DOCX renderer to inspect that actual document. It checks PATH and standard LibreOffice locations; if a needed tool is unavailable, it explains the next action and keeps the file as a draft.
+
+[Dependency details and setup checks](docs/setup.md#prerequisites-and-dependencies).
+
 ### 1. Open Codex or Claude Code
 
 #### a. Install and sign in
@@ -148,6 +161,8 @@ Your answer stays linked to that employer and work period. If the session ends, 
 
 The AI can prepare useful drafts while the interview continues. Open the documents and check your experience, dates, qualifications and contact details.
 
+**Before uploading a resume or CV to an application form, the AI must visually inspect every page of the actual file.** It checks clipping, alignment, spacing, page breaks and readability, fixes problems, and reviews the corrected version again. A PDF generated separately from a Word file does not verify the Word file's layout. If visual review cannot be completed, the upload waits.
+
 Give corrections directly in the conversation, for example:
 
 > That role was volunteering. Please correct it.
@@ -204,6 +219,8 @@ To change it, say **“Pause my scheduled search”** or **“Move my daily sear
 Tell the AI what happened. For missing records, provide the private location it gave you and say **“Resume my existing search here; do not start over.”** [More help](docs/setup.md#if-something-stops-you).
 
 If you renamed or moved your project, say **“I moved this job-search project. Reconnect my existing records here.”** The AI confirms the new location, preserves your answers and checks any saved routine before resuming it.
+
+To free the software cache for a finished search, say **“Show me this project's runtime cache and help me remove it.”** The AI previews the exact cache, asks before removal, and keeps your records and resumes. For a deleted project, it can list only job-search's owned caches so you can select the right one. A missing folder may mean a move, so cleanup is never automatic. Software can be installed again when needed.
 
 <details>
 <summary>Update or install from a terminal</summary>

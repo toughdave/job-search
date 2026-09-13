@@ -2,6 +2,7 @@
 """Project-scoped interview coverage derived from saved evidence, never checkboxes."""
 import argparse
 import json
+import re
 import uuid
 from pathlib import Path,PureWindowsPath,PurePosixPath
 import sys
@@ -109,6 +110,8 @@ def guard_history(old,new,allow_rebind=False):
         ws.require(after.get(key,[])[:len(before.get(key,[]))]==before.get(key,[]),f'Onboarding {key} order is append-only.')
         previous=ws.indexed(before.get(key,[]),key);current=ws.indexed(after.get(key,[]),key)
         ws.require(all(k in current and current[k]==v for k,v in previous.items()),f'Onboarding {key} is append-only.')
+    import experience
+    experience.guard_reviews(old,new)
 
 POINTER='.job-search-project.json'
 
@@ -181,6 +184,15 @@ def ask(value,project,topic_id,dimension,question,expected):
     row=next((r for r in review['topics'] if r['id']==topic_id),None)
     ws.require(row is None or (row['status'] not in ('declined','deferred','not_applicable','no_example') and dimension in row['missing_dimensions']),'Topic is covered or has a saved disposition; reconcile it first.')
     ws.require(question.count('?')+question.count('？')<=1,'Ask one question; split multiple decisions into separate turns.')
+    interrogative=r'(?:what|where|when|why|how|which|who|whose|(?:do|does|did|are|is|can|could|would|will|have|has)\s+you)\b'
+    clauses=re.split(r'\b(?:and|also|plus)\s+',question,flags=re.I)
+    ws.require(not (len(clauses)>1 and re.search(interrogative,clauses[0],re.I)
+                    and any(re.match(interrogative,part,re.I) for part in clauses[1:])),
+               'This appears to combine separate questions. Ask one decision now and save the other for a later turn.')
+    if topic_id=='linkedin':
+        ws.require(not (re.search(r'\b(?:link|url|address)\b',question,re.I)
+                        and not re.search(r'\b(?:review|improve|update|audit|feedback)\b',question,re.I)),
+                   'Profile URL/inclusion belongs to topic linkedin-url, dimension url. Topic linkedin is the optional profile review decision.')
     q={'id':'q-'+uuid.uuid4().hex,'topic_id':topic_id,'dimension':dimension,'question':question,'asked_at':ws.now()}
     state['onboarding']['questions'].append(q);state['session']['next_action']='Await answer: '+question
     saved=ws.commit(root,state,expected,'Saved the next interview question')
@@ -194,7 +206,7 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
     existing=next((a for a in state['interviews'] if a.get('onboarding_question_id')==question_id),None)
     if existing:
         ws.require(existing['answer']==answer and existing['interpretation']==interpretation,'Answer already saved; append a sourced correction rather than overwrite it.')
-        return {'answer':existing,'revision':state['revision']}
+        return {'answer':existing,'revision':state['revision'],'captured_characters':len(answer)}
     ws.require(answer.strip() and interpretation.strip(),'Exact answer and a separate interpretation are required.')
     sid='answer-'+uuid.uuid4().hex;relative='sources/'+sid+'.json'
     path=ws.inside(root,relative)
@@ -204,7 +216,8 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
     state['sources'].append(source);state['interviews'].append(a)
     state['session']['next_action']='Reconcile saved answer '+sid+' into supported facts and topic evidence before the next question.'
     saved=ws.commit(root,state,expected,'Saved exact candidate answer; coverage awaits reconciliation')
-    return {'answer':a,'revision':saved['revision']}
+    return {'answer':a,'revision':saved['revision'],'captured_characters':len(answer),
+            'capture_instruction':'Compare this saved answer with the full received message, including pasted postings and extra details. A saved file alone cannot prove the composer message was copied completely.'}
 
 
 def record_statement(value, project, statement_id, text, expected):
@@ -293,7 +306,7 @@ def main():
         if command=='record-statement':
             p.add_argument('--statement-id',required=True);p.add_argument('--text-file',required=True)
         if command=='save-answer':
-            p.add_argument('--question-id',required=True);p.add_argument('--answer-file',required=True,help='UTF-8 text containing the exact candidate answer');p.add_argument('--interpretation',required=True)
+            p.add_argument('--question-id',required=True);p.add_argument('--answer-file',required=True,help='UTF-8 text containing the FULL received message, including pasted postings; not an extracted first sentence');p.add_argument('--interpretation',required=True)
     args=parser.parse_args()
     try:
         if args.command=='bind':result=bind(args.workspace,args.project)

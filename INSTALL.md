@@ -20,6 +20,8 @@ The third-party installer may create a canonical `.agents` copy while targeting 
 
 ## Updates
 
+Before reporting a missing DOCX renderer, run the installed `setup_runtime.py --detect-renderers`; it checks standard LibreOffice locations as well as PATH. File creation and text extraction are separate from visual inspection. Apply the installed document quality gate before any upload, and pause that upload if the actual file cannot be viewed.
+
 Use the same project and explicitly update only this skill. Preserve any locally changed installed version before replacement. The distribution directory must contain no private workspace. Check the new version's state schema support before use; v1 refuses unsupported schemas rather than migrating destructively. Reopen the existing private workspace and verify its workspace ID, revision and current next action. Do not initialize again. No update may overwrite profile, Q&A, applications or files.
 
 ## Optional daily routine

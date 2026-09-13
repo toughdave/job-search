@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import math
+import re
 import unicodedata
 from pathlib import Path
 import sys
@@ -54,6 +55,42 @@ def validate_model(model,state):
         ws.require(all(x in facts and facts[x]['status'] in ('verified','candidate_reported') for x in ids),'Document uses an unknown, unresolved or superseded fact.')
     return model
 
+
+def wording_review(model,state,root):
+    """Surface vocabulary needing evidence review; lexical overlap is not truth."""
+    facts={f['id']:f for f in state['profile']['facts']}
+    sources={s['id']:s for s in state['sources']}
+    posting_ids=model.get('posting_source_ids',[])
+    ws.refs(posting_ids,sources,'Document posting sources',False)
+    posting_text=[]
+    for sid in posting_ids:
+        source=sources[sid]
+        ws.require(source['kind']=='employer','Posting comparison requires employer sources, not candidate evidence.')
+        path=ws.inside(root,source['file'])
+        ws.require(path.suffix.lower() in ('.txt','.md','.json'),'Save readable posting text before comparing wording.')
+        posting_text.append(path.read_text(encoding='utf-8-sig'))
+    stop=set('a an the and or of to in on at by for from with as is was were be been i my we our it this that their them which who into through using'.split())
+    def terms(text):
+        result={}
+        for word in re.findall(r"[a-z]+(?:'[a-z]+)?",text.lower()):
+            if word in stop or len(word)<3:continue
+            stem=re.sub(r'(?:ing|ed|s)$','',word) if len(word)>4 else word
+            result.setdefault(stem.rstrip('e'),word)
+        return result
+    posting=terms(' '.join(posting_text));rows=[]
+    for item in items(model):
+        evidence=[facts[f] for f in item['fact_ids']]
+        supported=terms(' '.join(f['claim'] for f in evidence));used=terms(item['text'])
+        missing=set(used)-set(supported)
+        if missing:
+            rows.append({'text':item['text'],'fact_ids':item['fact_ids'],
+                         'terms_to_review':sorted(used[t] for t in missing),
+                         'posting_only_terms':sorted(used[t] for t in missing.intersection(posting)),
+                         'evidence':[{'id':f['id'],'claim':f['claim'],'limits':f.get('limits','')} for f in evidence]})
+    return {'status':'review_required' if rows else 'no_lexical_flags','items':rows,'posting_source_ids':posting_ids,
+            'limitation':'English vocabulary heuristic, not a semantic verifier. Synonyms may be flagged; matching words can still contradict evidence or its limits.',
+            'next_action':'Check each phrase against the linked claims and original sources. Remove unsupported duties or context; ask only if the missing fact matters. Never approve a phrase solely because it appears in the posting.'}
+
 def build_docx(model,path):
     from docx import Document
     from docx.shared import Inches,Pt,RGBColor
@@ -75,6 +112,12 @@ def build_docx(model,path):
     heading=d.styles['Heading 1']; heading.font.size=Pt(11); heading.font.bold=True; heading.font.color.rgb=RGBColor.from_string('183F5A')
     heading.paragraph_format.space_before=Pt(11); heading.paragraph_format.space_after=Pt(5); heading.paragraph_format.keep_with_next=True
     bullet=d.styles['List Bullet']; bullet.font.size=Pt(layout['body_font_pt']); bullet.paragraph_format.space_after=Pt(3)
+    # The template's title/heading theme can override an explicit Arial name.
+    for name in ('Normal','Title','Heading 1','List Bullet'):
+        fonts=d.styles[name].element.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}rPr/{http://schemas.openxmlformats.org/wordprocessingml/2006/main}rFonts')
+        if fonts is not None:
+            for attribute in list(fonts.attrib):
+                if attribute.lower().endswith('theme'):del fonts.attrib[attribute]
     p=d.add_paragraph(model['name']['text'],'Title'); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     p=d.add_paragraph(model['contact']['text']); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     for s in model['sections']:
@@ -201,6 +244,7 @@ def pagination_review(reader,model,decision,positions=None):
 
 def export(value,model,stem,arial=None):
     root=ws.checked_root(value); state=ws.load(root); validate_model(model,state)
+    wording=wording_review(model,state,root)
     ws.require(stem.startswith(('applications/','documents/')),'Document stem must be inside applications/ or documents/.')
     for suffix in ('.docx','.pdf','.model.json','.claims.json'):
         ws.require(not ws.inside(root,stem+suffix).exists(),'Use a new version: an output filename already exists.')
@@ -214,21 +258,27 @@ def export(value,model,stem,arial=None):
         claims={'workspace_id':state['workspace_id'],'state_revision':state['revision'],'items':[{'text':i['text'],'fact_ids':i['fact_ids']} for i in items(model)],'pdf_pages':len(reader.pages),'text_extraction':'passed','visual_review':'not_performed','semantic_review':'not_performed','docx_pagination':'not_verified'}
         decision=formatting.for_model(model,state)
         pagination=pagination_review(reader,model,decision,positions)
-        claims.update(guidance_status=decision.get('guidance_status') if decision else 'not_configured',format_decision_id=decision['id'] if decision else None,format_review='saved_decision' if decision else 'not_configured',pagination=pagination)
+        claims.update(guidance_status=decision.get('guidance_status') if decision else 'not_configured',format_decision_id=decision['id'] if decision else None,format_review='saved_decision' if decision else 'not_configured',pagination=pagination,wording_review=wording)
         (temp/'draft.model.json').write_text(json.dumps(model,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         (temp/'draft.claims.json').write_text(json.dumps(claims,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         # No export may be committed after evidence changed while rendering.
         with ws.write_lock(root):
             ws.require(ws.load(root)['revision']==state['revision'],'State changed during export; reread facts and try a new export.')
             outputs=[ws.import_file(root,temp/('draft'+suffix),stem+suffix) for suffix in ('.docx','.pdf','.model.json','.claims.json')]
-    return {'outputs':outputs,'pdf_pages':len(reader.pages),'pagination':pagination,'format_review':claims['format_review'],'guidance_status':claims['guidance_status'],'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
+    return {'outputs':outputs,'pdf_pages':len(reader.pages),'pagination':pagination,'wording_review':wording,'format_review':claims['format_review'],'guidance_status':claims['guidance_status'],'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
 
 def main():
     ws.configure_output()
-    p=argparse.ArgumentParser(description=__doc__); p.add_argument('--workspace',required=True); p.add_argument('--model',required=True); p.add_argument('--stem',required=True); p.add_argument('--arial','--font',dest='arial')
+    p=argparse.ArgumentParser(description=__doc__); p.add_argument('--workspace',required=True); p.add_argument('--model',required=True); p.add_argument('--stem'); p.add_argument('--arial','--font',dest='arial');p.add_argument('--review-only',action='store_true')
     a=p.parse_args()
     try:
-        result=export(a.workspace,json.loads(Path(a.model).read_text(encoding='utf-8')),a.stem,a.arial); print(json.dumps(result,indent=2)); return 0
+        model=json.loads(Path(a.model).read_text(encoding='utf-8-sig'))
+        if a.review_only:
+            state=ws.load(a.workspace);validate_model(model,state);result=wording_review(model,state,ws.checked_root(a.workspace))
+        else:
+            ws.require(a.stem,'--stem is required for export. Use --review-only to review wording without creating files.')
+            result=export(a.workspace,model,a.stem,a.arial)
+        print(json.dumps(result,indent=2)); return 0
     except ImportError as e:
         print(f'Document dependency missing: {e}. Run setup_runtime.py for these records and use its returned private interpreter.',file=sys.stderr); return 2
     except (ws.WorkspaceError,OSError,ValueError,KeyError,TypeError) as e:
