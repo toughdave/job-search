@@ -260,9 +260,7 @@ def check_reply(value,project,reply,expected):
     indirect=r"\b(?:you (?:can|could|may|should) (?:also )?(?:share|send|provide|tell me|let me know|attach)|it (?:would|could|might|will) (?:also )?help to (?:know|have|get)|(?:please|also) (?:share|send|provide|tell me|let me know))\b"
     ws.require(not re.search(r'[?？]',summary) and not re.search(direct,summary,re.I) and not re.search(indirect,summary,re.I),
                'Reply contains an additional or unsaved request. Save one question with ask and remove the other asks before checking again.')
-    return {'send_verbatim':text,
-            'note':'Your entire next message must be exactly send_verbatim. Add no introduction, validation commentary, quotation wrapper or follow-up request.',
-            'revision':state['revision'],'pending_question_id':pending[0]['id'] if pending else None}
+    return {'send_verbatim':text}
 
 
 
@@ -330,13 +328,16 @@ def plan_state(state,value,project):
     missing_baseline=[t for t in baseline_topics() if t['id'] not in configured]
     import linkedin
     import formatting
+    import provenance
+    ledger=provenance.plan(state,ws.checked_root(value))
     return {'workspace_id':state['workspace_id'],'revision':state['revision'],'project_root':ob['project_root'],
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
         'work_history':history,
         'linkedin':linkedin.plan(state),
         'document_formats':formatting.plan(state),
+        'provenance':ledger,
         'missing_baseline_topics':missing_baseline,
-        'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved and history['ready'] and not missing_baseline),
+        'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved and history['ready'] and not missing_baseline and ledger['ready']),
         'unresolved_required_topics':unresolved,
         'reply_check':'Before every interview reply, including after a fact-heavy statement or when no question is saved, run check-reply on the actual proposed reply. Save one ask first if candidate input is needed; never send a list of missing topics.',
         'instruction':'Review all existing facts and exact answers for each missing dimension before asking. Map supported answers into evidence; do not repeat an answered question. Checked is derived, never an input.'}

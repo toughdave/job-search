@@ -229,6 +229,8 @@ def validate(state, root):
     formatting.validate(state)
     import pipeline
     pipeline.validate(state)
+    import provenance
+    provenance.validate(state,root)
     return state
 
 def load(root):
@@ -281,6 +283,8 @@ def status_note(root,state):
     p.write_text(txt,encoding='utf-8')
 
 def guard_history(old,new,allow_rebind=False):
+    import provenance
+    provenance.guard_history(old,new)
     import pipeline
     pipeline.guard_history(old,new)
     import formatting

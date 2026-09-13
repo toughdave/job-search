@@ -34,6 +34,18 @@ Check material status independently from the invitation. An interview invitation
 
 Apply that check to **headings and captions**, not only body text: “matches the submitted resume” is also a submission claim. A candidate report that they submitted something does not identify a verified file snapshot. Check narrow negatives and soft self-claims in every answer; never broaden “I did not manage the dentists' schedules” into a claim about the role's entire scope. Finally compare the contents with promised sections: include the stated reply draft, or remove the promise and say it remains to be prepared. A reply draft is not a sent reply.
 
+## Wording scan before saving
+
+Keep the draft in workspace scratch and run this for the pack, then the proposed chat summary (using a separate text file):
+
+```sh
+python S/scripts/stage_review.py --workspace W --application APP_ID --file scratch/screen-pack.md --fact-id FACT_ID
+```
+
+Repeat `--fact-id` for the evidence actually used. The standard-library scanner flags learning-speed/adaptability claims, “similar” comparisons, broad role-scope negatives, and submitted-material labels without a receipt. It returns line numbers, the reviewed hash and the selected fact claims/limits/source IDs. Read the original sources for every flagged claim. Do not claim that an unnamed practice system was similar to another product without evidence, or promise quick learning to soften a gap. Describe the known use and the exact responsibility that was absent.
+
+Flags can also appear in questions, quoted evidence or supported statements; record a brief evidence-based resolution rather than mechanically deleting all matches. Fix unsupported wording, rescan after meaningful edits, then save the reviewed pack and its scan/resolution note in the application. Review the chat summary separately so a removed claim is not reintroduced there. Run once per draft revision, not repeatedly on unchanged text. No flags means only that these limited English patterns were absent; still check scope, promised sections and exact material status.
+
 ## Calendar and follow-through
 
 Offer calendar holds and reminders after saving the verified logistics. Create or change events only with the candidate's authorization for that account and action. Clearly label tentative holds, preserve the source timezone, verify the returned event, and save its ID/link locally. A proposed time in an email is not an accepted invitation. Update/cancel only the matching authorized event; do not touch unrelated calendars.

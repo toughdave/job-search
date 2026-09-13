@@ -8,7 +8,16 @@ The existing `onboarding.resume.source_ids` can list several originals and text 
 
 When two or more original resumes are supplied, create `notes/provenance-ledger-v001.md` **before finishing that intake turn**, even if a conflict is still awaiting an answer. A combined extraction or a warning in a fact's `limits` does not replace this ledger. Record the source inventory and every material retained, derived, conflicting or excluded claim: employer/period, original excerpt/source ID, linked fact IDs if any, possible common ancestor, grade, rationale, and resolution or pending question. Explicitly include each D-graded claim; do not silently discard it or promote it into a candidate fact.
 
-Write the ledger through workspace `import-file`, register it as a `document` source, and save its returned file/hash/source ID in `onboarding.resume.provenance_ledger`. Read it back before calling reconciliation complete. On later corrections, save v002 (and so on), link the preceding ledger, preserve excluded-claim history, and update the pointer. Reuse the current ledger when the source inventory and resolutions are unchanged. A missing ledger is unfinished AI work, not a reason to ask the candidate again for facts already supplied.
+Write the draft in `W/scratch/ledger.md`, then run:
+
+```sh
+python S/scripts/provenance.py save --workspace W --draft scratch/ledger.md --expected-revision N
+python S/scripts/provenance.py plan --workspace W
+```
+
+The helper preserves the previous ledger, imports the next immutable version, registers its `document` source, and advances `onboarding.resume.provenance_ledger` in **one state commit**. It adds the previous-version link automatically. The commit guard refuses a new ledger registration that leaves the old pointer behind. Read back the returned pointer and its actual contents. Keep all excluded-claim history in the new draft; the helper does not grade or verify prose for you.
+
+Unchanged draft text and source inventory reuse the current version. On resume, `onboarding.py plan` includes `provenance.ready`, the current pointer, latest registered ledger and any unregistered files. An older stale pointer remains readable for recovery: use `provenance.py repair --workspace W --expected-revision N` to point to the latest registered version, then reread it. Do not use file modification times to select a ledger. A failed/concurrent commit can leave an unregistered immutable file; inspect it and retry the same draft after rereading the revision, rather than overwriting it or silently adopting different content. A missing ledger is unfinished AI work, not a reason to ask the candidate for already supplied facts.
 
 | Grade | Meaning | Use |
 | --- | --- | --- |
@@ -18,6 +27,8 @@ Write the ledger through workspace `import-file`, register it as a `document` so
 | D | Unverified enhancement or unresolved conflict | Exclude from employer-facing claims until resolved. |
 
 For example, an unsupported “30% fewer no-shows” claim stays in a D row with its original source and “excluded pending confirmation”, even when no such fact is added to the evidence bank. A later candidate correction gets its own source and resolution; it does not erase the original row.
+
+Resolve materially different claims separately. Denial of using a tool or managing a specific schedule does not also disprove a nearby metric or date. “I did not measure a reduction” leaves the reduction unverified; it does not establish that no reduction occurred. Preserve those distinctions in the ledger and chat summary. Exclusion is based on current evidence, not a permanent ban on a later sourced correction.
 
 Several drafts may descend from one generated ancestor. Treat them as one claim lineage, not several independent witnesses. An attractive metric appearing in three AI drafts stays unverified without its origin. Grades are review metadata, not a replacement for `candidate_reported`, `verified`, `unresolved` or `superseded` status.
 

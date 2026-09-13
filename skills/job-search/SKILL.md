@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.10.1"
+  version: "1.11.0"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -27,9 +27,13 @@ Read [project onboarding](references/onboarding.md) and [interview and evidence]
 
 For two or more original resumes, the intake turn must save and read back the versioned provenance ledger, including explicit D rows for excluded/conflicting claims. Warnings in prose or fact limits alone do not complete this work. Name, email and phone are separate questions; reuse supplied contact details without asking again.
 
+Use `provenance.py save` for every new ledger version; it registers the document and advances its pointer in one state commit. Inspect `plan.provenance` on return and repair a stale pointer before relying on that ledger. Do not ask the candidate again to fix an AI bookkeeping omission.
+
 Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Say “saved” only after a successful write and readback. In a read-only session or response simulation, do not claim anything was saved or activated. Missing checkmarks are not proof of missing answers.
 
 For both `record-statement` and `save-answer`, copy the **entire received message**, including tailoring requests and pasted postings, then compare the returned text and character count with the original. Save a posting additionally as an employer source; never substitute that copy for the complete message. Source text from a posting is employer information, not proof of candidate experience.
+
+If a harness invokes this skill with summarized arguments, use the original user turn as the source of truth, not the assistant-written invocation summary. Recheck that original turn for the pending answer and all volunteered corrections before saving or asking again. A request to update records can also contain the answer to the existing question.
 
 A volunteered message is not a series of interviews. Save the complete message once using `onboarding.py record-statement`; map all supported facts from that source without creating questions that were never asked. If it answers the actual pending question, save the full response with `save-answer` instead. Never reconstruct fictional exact Q&A from resume bullets or a multi-fact message.
 
@@ -61,6 +65,8 @@ A request to make files “ready to upload” triggers [clean upload completion]
 
 When an employer responds, follow [career stages](references/career-stages.md) for recruiter screens, interviews, assessments, requests, references, offers and debriefs. Prepare the relevant pack and update the next action; calendar or outbound actions still need authorization. Use [measurement](references/measurement.md) for observed milestones and confirmed-submission cohorts.
 
+Before saving a stage pack, run `stage_review.py` on its draft and on the proposed chat summary. Resolve flagged self-claims, comparisons and widened negatives against the actual evidence; a clear phrase scan is not proof of truth. See career stages for the commands and review limits.
+
 ## Continue, goals and optional automation
 
 “Continue my job search,” “What needs attention?” and “Tailor my resume for this job” all use the same private workspace and conversation workflow. Record corrections and progress after each meaningful step. Persist a pending action before a consequential browser action; inspect employer state on recovery before retrying so a crash cannot cause duplicate submissions.
@@ -74,5 +80,7 @@ During onboarding, once target work and region are known, read [daily routine](r
 Save and verify meaningful changes before responding. Summarize the useful result in a few sentences and show the next question **or** next action. Do not list file-maintenance chores. Before **every** interview reply, including the first response to a fact-heavy message and replies with no saved question, save the full proposed reply to W/scratch and run `onboarding.py check-reply --workspace W --project P --reply-file FILE --expected-revision N`. If input is needed but no question is pending, call `ask` first. Fix a failed check before sending; output only the returned `send_verbatim` value, without a “check passed” preface, validation commentary or quotation wrapper. Review its meaning too: requests such as “share your phone number” count as questions even without a question mark. Never present the checklist of missing topics as a numbered interview. A pending reply ends with the one saved question; other missing details stay internal. Do not add an approval question beside an experience question; queue that decision for a later turn. A turn that needs a candidate answer must wait for that answer; silence is not agreement. If tools are unavailable, identify the single missing capability honestly and preserve progress instead of pretending the action succeeded.
 
 Wrong: “Check passed. Here’s my reply:” followed by the reply. Right: the `send_verbatim` text alone, including any permitted question formatting already in that text.
+
+Immediately before sending an interview reply, compare the actual composer text with `send_verbatim`: its first characters must be the first characters of that value, and the full text must match. Add nothing before or after it. The successful helper response contains only `send_verbatim`; do not narrate calling or passing the helper.
 
 The reply helper checks structure and a limited set of English patterns. Its clean output does not prove every paraphrase contains only one decision. Judge the complete reply before sending; do not keep expanding a phrase blacklist to approximate a general language parser.

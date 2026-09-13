@@ -14,7 +14,7 @@ Follow [writing](writing.md#cover-letter) for every available letter route, incl
 
 Keep internal versioned originals. After visually reviewing the exact source file, run `scripts/uploads.py` to create a byte-identical upload copy; opening `--help` is not this operation. This applies when preparing files offline for someone who asks for “ready to upload”, as well as during portal entry. Do not upload or present an internal `resume-v003.pdf` as the ready upload file.
 
-The basename is at most 80 characters, normally `Name - Employer - Role - Resume.pdf`. The full name is preserved, including accents and safe apostrophes. Only when needed, the helper removes parenthetical/dash suffixes and whole trailing words from the role, then employer; it never cuts a word or generates initials. It budgets for the actual document type and extension, so a letter stem can be shorter than a resume stem. Very long unbreakable role/employer text may be omitted. If even the full name plus document label cannot fit safely, ask for a candidate-approved filename name instead of altering identity. Respect any stricter portal limit.
+The basename is at most 80 characters, normally `Name - Employer - Role - Resume.pdf`. The full name is preserved, including accents and safe apostrophes. Parentheticals are always stripped from employer and role. If needed, whole employer words are shortened or the employer is omitted **before** touching the role. The role is kept whole or omitted whole if it cannot fit even without the employer; no head-noun guessing or fragments such as “Senior”, “Dental” or “IT” are generated. The helper then restores as much employer text as fits. It budgets for the actual document type and extension, so a letter stem can differ. If even the full name plus document label cannot fit safely, ask for an approved filename name rather than altering identity. Respect stricter portal limits.
 
 Save a JSON visual-review record in the workspace using actual observations:
 
@@ -33,6 +33,8 @@ The helper checks paths, name evidence, page coverage and the current hash, then
 Before saying “ready to upload”, finish this checklist for **each** requested resume/CV and letter: inspect the actual pages; save its JSON review record; execute the helper with that record; verify the returned copy/hash; commit its copy and review references in the application and read them back. Report the actual clean filenames with links. If any step is blocked, name the unfinished step and keep the document labelled draft. Do not claim readiness from export success, a Markdown-only visual note, or a planned helper command. Respect the other format/evidence gates too.
 
 Use the helper's returned `markdown_link` verbatim in the final reply. Never retype or reconstruct its hash directory or filename. Check that each linked target is the returned existing copy. On a later request for the links, rerun the idempotent helper with the current reviewed source if needed, rather than reconstructing paths from memory.
+
+Prepare and review the format actually requested or accepted by the portal. If PDF is sufficient, an additional DOCX export may remain a draft; do not incur another render/upload-copy pass just because it exists. If the candidate requests both formats, finish both. Reuse a valid visual review only when its exact file hash is unchanged; changed files still need inspection. Never reduce checks for a requested upload file merely to save cost.
 
 ## Verification messages
 

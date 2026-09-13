@@ -18,7 +18,10 @@ def clean(value):
 def filename(name,employer,role,kind,extension):
     ws.require(kind in ('resume','cv','cover_letter'),'Choose resume, cv or cover_letter.')
     ws.require(extension in ('.pdf','.docx'),'Only reviewed PDF or DOCX uploads are supported.')
-    parts=[clean(x) for x in (name,employer,role)]
+    def without_parentheses(value):
+        while re.search(r'\([^()]*\)',value):value=re.sub(r'\([^()]*\)',' ',value)
+        return clean(value)
+    parts=[clean(name),without_parentheses(employer),without_parentheses(role)]
     ws.require(all(parts),'Name, employer and role must contain usable filename characters.')
     label={'resume':'Resume','cv':'CV','cover_letter':'Cover Letter'}[kind]
     suffix=' - '+label+extension
@@ -27,16 +30,17 @@ def filename(name,employer,role,kind,extension):
     ws.require(parts[0]==' '.join(unicodedata.normalize('NFC',name).split()),'Name contains unsafe filename characters; confirm a supported filename name instead of changing it automatically.')
     def joined():return ' - '.join(p for p in parts if p)+suffix
     def fits():return len(joined())<=80 and len(joined().encode('utf-8'))<=255
-    for index,raw in ((2,role),(1,employer)):
-        if fits():break
-        simplified=re.sub(r'\([^()]*\)',' ',raw)
-        simplified=re.split(r'\s+[—–-]\s+|[—–]',simplified,maxsplit=1)[0]
-        parts[index]=clean(simplified)
-        while not fits() and ' ' in parts[index]:parts[index]=parts[index].rsplit(' ',1)[0]
-    # Single unbreakable words can be omitted, never sliced into misleading names.
-    for index in (2,1):
-        if fits():break
-        parts[index]=''
+    employer_full=parts[1]
+    # Preserve the entire role instead of guessing its head noun across languages.
+    # Employer words can be shortened or omitted first, including one long word.
+    while not fits() and parts[1]:
+        parts[1]=parts[1].rsplit(' ',1)[0] if ' ' in parts[1] else ''
+    if not fits():
+        # A role that cannot fit even alone is omitted whole, never reduced to
+        # misleading fragments such as Senior, Dental or IT. Restore the employer.
+        parts[2]='';parts[1]=employer_full
+        while not fits() and parts[1]:
+            parts[1]=parts[1].rsplit(' ',1)[0] if ' ' in parts[1] else ''
     ws.require(fits(),'Full name and document label exceed the filename limit; ask for an explicitly approved shorter filename name. Never generate initials automatically.')
     return joined()
 
