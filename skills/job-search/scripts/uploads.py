@@ -74,12 +74,15 @@ def prepare(value,application_id,source,review_file,name,name_fact_id,kind):
             ws.file_ref(root,image,'Viewed page image')
             ws.require(ws.inside(root,image['file']).read_bytes().startswith(b'\x89PNG\r\n\x1a\n'),'Preserve rendered page images as PNG files.')
         basename=filename(name,application['employer'],application['role'],kind,src.suffix.lower())
+        # Keep the exact review bytes independently of a disposable draft path.
+        saved_review=ws.import_file(root,review_path,'notes/upload-reviews/'+review_hash+'.json')
+        ws.require(saved_review['sha256']==review_hash,'Review changed while preserving it; inspect it again before upload.')
         relative='applications/'+application_id+'/uploads/'+review['sha256'][:16]+'/'+basename
         result=ws.import_file(root,src,relative)
         ws.require(result['sha256']==review['sha256'],'Source changed while making upload copy; do not upload this copy. Review the current source again.')
         ws.require(ws.digest(review_path)==review_hash,'Review record changed; inspect it again before upload.')
         for image in images:ws.file_ref(root,image,'Viewed page image')
-        return {**result,'basename':basename,'markdown_link':'['+basename+'](<'+ws.inside(root,relative).as_posix()+'>)','review':{'file':review_file,'sha256':review_hash},'reviewed_source':source,
+        return {**result,'basename':basename,'markdown_link':'['+basename+'](<'+ws.inside(root,relative).as_posix()+'>)','review':saved_review,'reviewed_source':source,
                 'next_action':'Record this upload copy and review reference in the application. Recheck file and image hashes before upload. This validates a review record and its images, not the truth of the claimed image-tool use.'}
 
 
