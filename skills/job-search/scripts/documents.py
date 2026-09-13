@@ -122,11 +122,14 @@ def fit_review(state,root,application_id):
     result=wording_review({},state,root,entries)
     result['application_id']=application_id
     result['supported_requirements_checked']=len(entries)
+    explanations=[{'text':m['remaining'],'fact_ids':m.get('fact_ids',[])} for m in application.get('fit',[]) if m.get('remaining')]
+    result['explanation_review']=wording_review({},state,root,explanations)
+    if result['explanation_review']['items']:result['status']='review_required'
     result['fact_source_review']=fact_source_review(state,root,[fid for m in application.get('fit',[]) for fid in m.get('fact_ids',[])])
     if result['fact_source_review']['status']=='review_required':result['status']='review_required'
     for row in result['items']:
         row['fit_indices']=[i for i,m in supported if m['requirement']==row['text'] and m['fact_ids']==row['fact_ids']]
-    result['next_action']='Review every supported requirement against its linked claims and limits. Split combined duties or use partial with the unsupported component in remaining. Book appointments does not establish confirm appointments. Flags are prompts for judgment, not automatic downgrades.'
+    result['next_action']='Review supported requirements, explanation_review, and fact_source_review against original sources. A corrected fact also requires reconciling stale remaining/gap notes. Split combined duties or use partial with the unsupported component in remaining. Book appointments does not establish confirm appointments. Flags are prompts for judgment, not automatic downgrades.'
     return result
 
 
