@@ -186,7 +186,8 @@ def ask(value,project,topic_id,dimension,question,expected):
     ws.require(question.count('?')+question.count('？')<=1,'Ask one question; split multiple decisions into separate turns.')
     interrogative=r'(?:what|where|when|why|how|which|who|whose|(?:do|does|did|are|is|can|could|would|will|have|has)\s+you)\b'
     clauses=re.split(r'(?:\b(?:and|or|also|plus)\s+|;\s*)',question,flags=re.I)
-    ws.require(not (len(clauses)>1 and re.search(interrogative,clauses[0],re.I)
+    relocation_choice=bool(re.fullmatch(r'(?:are you|would you be) (?:open|willing|prepared) to (?:relocate|relocating|move|moving),? or (?:do|would) you (?:want|prefer) to (?:stay|remain) local[?？]?',question.strip(),re.I))
+    ws.require(relocation_choice or not (len(clauses)>1 and re.search(interrogative,clauses[0],re.I)
                     and any(re.match(interrogative,part,re.I) for part in clauses[1:])),
                'This appears to combine separate questions. Ask one decision now and save the other for a later turn.')
     if topic_id=='linkedin':
@@ -231,17 +232,26 @@ def check_reply(value,project,reply,expected):
     pending=[q for row in review['topics'] for q in row['pending_questions']]
     ws.require(len(pending)<=1,'Resolve multiple pending questions before replying.')
     text=reply.strip();ws.require(text,'Proposed reply is empty.')
+    narration=text.replace('’',"'")
+    ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply)\b",narration,re.I),
+               'Remove internal validation narration. The entire reply must be candidate-facing text only.')
     summary=text
     if pending:
         question=pending[0]['question'].strip()
-        ws.require(text.endswith(question) and text.count(question)==1,'End the reply with the exact saved pending question, once. Do not replace it with a list of asks.')
-        summary=text[:-len(question)]
+        wrappers=(('**','**'),('__','__'),('*','*'),('_','_'),('"','"'),("'","'"),('“','”'),('‘','’'),('',''))
+        ending=next((left+question+right for left,right in wrappers if text.endswith(left+question+right)),None)
+        ws.require(ending is not None and text.count(question)==1,'End the reply with the exact saved pending question, once. Surrounding emphasis or quotes are allowed; other wording must not change.')
+        summary=text[:-len(ending)]
         ws.require(not re.search(r'^\s*(?:\d+[.)]|[-*])\s+',summary,re.M),'Keep this interview reply to a short summary and the one saved question, without a checklist.')
-    request=r'(?:^|[.!\n]\s*)(?:please\s+)?(?:tell me|provide|share|confirm|choose|select|let me know|send me|attach|what|where|when|which|how|would you|could you|can you)\b'
-    ws.require(not re.search(r'[?？]',summary) and not re.search(request,summary,re.I),
+    # WH-led declarative headings ("What I saved") are not requests without a question mark.
+    direct=r'(?:^|[.!:\n]\s*)(?:please\s+)?(?:also\s+)?(?:tell me|provide|share|confirm|choose|select|let me know|send me|attach|would you|could you|can you)\b'
+    indirect=r"\b(?:you (?:can|could|may|should) (?:also )?(?:share|send|provide|tell me|let me know|attach)|it (?:would|could|might|will) (?:also )?help to (?:know|have|get)|(?:please|also) (?:share|send|provide|tell me|let me know))\b"
+    ws.require(not re.search(r'[?？]',summary) and not re.search(direct,summary,re.I) and not re.search(indirect,summary,re.I),
                'Reply contains an additional or unsaved request. Save one question with ask and remove the other asks before checking again.')
-    return {'status':'passed','revision':state['revision'],'pending_question_id':pending[0]['id'] if pending else None,
-            'reply':text,'limitation':'English request heuristic; review meaning too. Only the supplied reply is checked. Send this exact text; changed replies must be checked again.'}
+    return {'send_verbatim':text,
+            'note':'Your entire next message must be exactly send_verbatim. Add no introduction, validation commentary, quotation wrapper or follow-up request.',
+            'revision':state['revision'],'pending_question_id':pending[0]['id'] if pending else None}
+
 
 
 def record_statement(value, project, statement_id, text, expected):
