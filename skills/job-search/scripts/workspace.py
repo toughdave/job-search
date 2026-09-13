@@ -20,7 +20,7 @@ SCHEMA = 1
 STAGES = {'discovered','qualified','preparing','ready','submitted_unverified','submitted','blocked','skipped','withdrawn'}
 OUTCOMES = {'none','awaiting','positive','action','offer','declined'}
 POSTINGS = {'unknown','open','closed','expired','cancelled'}
-KINDS = {'resume','candidate_answer','document','employer','official','candidate_report'}
+KINDS = {'resume','candidate_answer','document','employer','official','candidate_report','skill_reference'}
 FACT_STATUS = {'candidate_reported','verified','unresolved','superseded'}
 CATEGORIES = {'employment','project','volunteering','education','certification','skill','preference','identity','other'}
 BUCKETS = {'sources','applications','documents','notes'}
@@ -118,6 +118,18 @@ def file_ref(root, item, label):
     require(p.is_file(), f'{label}: file is missing.')
     require(item.get('sha256') == digest(p), f'{label}: saved file hash differs.')
 
+
+def candidate_authorization(state, record, label):
+    sources=indexed(state['sources'],'sources')
+    aid=record.get('answer_id');sid=record.get('statement_id')
+    require(bool(aid) != bool(sid),label+': cite one exact answer or volunteered statement.')
+    collection=indexed(state['interviews'] if aid else state.get('statements',[]),label)
+    key=aid or sid
+    require(key in collection,label+': exact candidate record missing.')
+    refs(record.get('source_ids'),sources,label)
+    require(set(collection[key]['source_ids']).intersection(record['source_ids']),label+': must cite the candidate record source.')
+    require(any(sources[x]['kind'] in ('candidate_answer','candidate_report') for x in record['source_ids']),label+': candidate authorization required.')
+
 def validate(state, root):
     require(isinstance(state,dict) and state.get('schema_version')==SCHEMA, 'Unsupported workspace schema; preserve it and use a compatible release.')
     require(isinstance(state.get('revision'),int) and state['revision']>=0, 'Invalid revision.')
@@ -133,6 +145,12 @@ def validate(state, root):
     for q in interviews.values():
         require(all(isinstance(q.get(k),str) and q[k].strip() for k in ('question','answer','interpretation')), 'Interview needs exact question, answer and interpretation.')
         refs(q.get('source_ids'),sources,'Interview'); stamp(q.get('recorded_at'),'interview recorded_at')
+    for statement in indexed(state.get('statements',[]),'statements').values():
+        require(isinstance(statement.get('text'),str) and statement['text'].strip(),'Exact volunteered statement required.')
+        require('question' not in statement and 'answer' not in statement,'A volunteered statement is not an invented interview.')
+        stamp(statement.get('recorded_at'),'statement recorded_at')
+        refs(statement.get('source_ids'),sources,'Statement')
+        require(all(sources[x]['kind']=='candidate_report' for x in statement['source_ids']),'Statement sources must be candidate reports.')
     facts=indexed(profile.get('facts'),'facts')
     for f in facts.values():
         require(isinstance(f.get('claim'),str) and f['claim'].strip(),'Fact needs a claim.')
@@ -177,9 +195,10 @@ def validate(state, root):
         if a['stage']=='submitted_unverified': require(not submission,'Unverified submission cannot have a confirmed receipt/date.')
         for m in a.get('fit',[]):
             require(isinstance(m,dict) and isinstance(m.get('requirement'),str),'Fit requirement required.')
-            require(m.get('assessment') in ('supported','unknown','gap','not_required'),'Fit assessment invalid.')
+            require(m.get('assessment') in ('supported','partial','unknown','gap','not_required'),'Fit assessment invalid.')
+            if m['assessment']=='partial':require(isinstance(m.get('remaining'),str) and m['remaining'].strip(),'Partial fit must explain the unsupported remainder.')
             ids=m.get('fact_ids',[]); require(isinstance(ids,list) and all(x in facts for x in ids),'Unknown fit fact.')
-            if m['assessment']=='supported': require(ids and all(facts[x]['status'] in ('verified','candidate_reported') for x in ids),'Supported fit cannot use unresolved/superseded facts.')
+            if m['assessment'] in ('supported','partial'): require(ids and all(facts[x]['status'] in ('verified','candidate_reported') for x in ids),'Supported fit cannot use unresolved/superseded facts.')
     runs=indexed(state.get('runs'),'runs')
     for r in runs.values():
         require(r.get('status') in ('running','complete','incomplete'),'Invalid run status.')
@@ -235,6 +254,7 @@ def initialize(value,allow_git_parent=False):
     atomic_json(root/'.job-search-workspace.json',{'format':'job-search','workspace_id':wid})
     atomic_json(root/'.job-search/state.json',state)
     (root/'.gitignore').write_text('*\n',encoding='utf-8')
+    (root/'.ignore').write_text('.runtime/\n',encoding='utf-8')
     status_note(root,state)
     return state
 
@@ -244,8 +264,8 @@ def status_note(root,state):
     txt=f"# Your job search\n\nSaved revision: {state['revision']}\n\nNext action: {state['session']['next_action']}\n\nApplications tracked: {len(state['applications'])}\n\nThe AI maintains these files for you. Continue in the same project or supply this workspace location.\n"
     if state.get('onboarding'):
         import onboarding
-        try: review=onboarding.plan(root,state['onboarding']['project_root'])
-        except WorkspaceError:
+        try: review=onboarding.plan_state(state,root,state['onboarding']['project_root'])
+        except ValueError:
             p.write_text(txt+'\nProject folder unavailable. Use onboarding.py rebind after confirming the new location.\n',encoding='utf-8')
             return
         txt+='\n## Interview progress\n\nResume: '+review['resume_status']+'\n\n'
@@ -267,8 +287,8 @@ def guard_history(old,new,allow_rebind=False):
     routine.guard_history(old,new)
     import onboarding
     onboarding.guard_history(old,new,allow_rebind=allow_rebind)
-    for name in ('sources','interviews','decisions'):
-        before=indexed(old[name],name); after=indexed(new[name],name)
+    for name in ('sources','interviews','decisions','statements'):
+        before=indexed(old.get(name,[]),name); after=indexed(new.get(name,[]),name)
         require(all(k in after and after[k]==v for k,v in before.items()),f'{name} is append-only; add a correction instead of overwriting history.')
     before=indexed(old['profile']['facts'],'facts'); after=indexed(new['profile']['facts'],'facts')
     for k,v in before.items():

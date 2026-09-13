@@ -111,11 +111,15 @@ Then use job-search to start my search.
 
 **Press Send once.** This message asks the AI to install the skill and begin your setup. Follow any specific installation approval or restart instruction.
 
+If the newly installed skill does not appear, start a **new conversation in the same project**, then summon it using the instructions under [Use it again](#coming-back-later).
+
 You do not need to add instructions about asking one question at a time or managing files. Those are built into the skill.
 
 ### 4. Let the AI set up, then answer its questions
 
 **The AI handles the software setup too.** It checks Python, installs missing document and timezone packages in a private environment, and verifies that documents can be created and PDFs rendered. If Python is missing, it arranges a private runtime. You may see a download or approval request. Node is only needed for the optional terminal installer; the AI can install the skill without it.
+
+Your answers and documents usually go in a private **records** folder inside your project. The AI tells you the location. Large software packages stay in a separate local cache on your computer.
 
 The terminal command below copies the skill. Summoning it afterward starts these setup checks. If a required tool cannot be installed, the AI explains the specific next action and keeps unfinished setup visible.
 

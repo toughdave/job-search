@@ -46,10 +46,8 @@ def validate(state):
         ws.refs(review.get('experience_ids'),entries,'History inventory',False)
         ws.refs(review.get('resume_source_ids'),sources,'Reviewed resume sources',False)
         ws.refs(review.get('source_ids'),sources,'History confirmation')
-        aid=review.get('answer_id')
-        ws.require(aid in answers,'History confirmation needs the exact saved answer.')
-        ws.require(set(answers[aid]['source_ids']).intersection(review['source_ids']),'History confirmation must cite its answer source.')
-        ws.require(any(sources[s]['kind'] in ('candidate_answer','candidate_report') for s in review['source_ids']),'Candidate must confirm the work-history inventory.')
+        ws.candidate_authorization(state,review,'History confirmation')
+
 
 
 def coverage(state,rows):
@@ -75,5 +73,7 @@ def coverage(state,rows):
         gaps.extend(t['id'] for t in topics if by_id[t['id']]['status'] not in resolved)
         result.append({**entry,'resolved':not gaps,'gaps':gaps})
     return {'inventory_confirmed':confirmed,'experiences':result,
+            'confirmation_snapshot':{'experience_ids':[e['id'] for e in active],
+                                     'resume_source_ids':list(ob['resume'].get('source_ids',[]))},
             'ready':confirmed and all(e['resolved'] for e in result),
             'instruction':'Reconcile this project resume and saved answers into separate employer/role periods. Confirm all employers have been listed. Review existing evidence before asking role-specific missing questions.'}

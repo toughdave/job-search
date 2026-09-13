@@ -104,7 +104,7 @@ def font_candidates(explicit=None):
     return list(dict.fromkeys(paths))
 
 def bold_sibling(path):
-    names={'arial.ttf':'arialbd.ttf','Arial.ttf':'Arial Bold.ttf','DejaVuSans.ttf':'DejaVuSans-Bold.ttf',
+    names={'Vera.ttf':'VeraBd.ttf','arial.ttf':'arialbd.ttf','Arial.ttf':'Arial Bold.ttf','DejaVuSans.ttf':'DejaVuSans-Bold.ttf',
            'NotoSans-Regular.ttf':'NotoSans-Bold.ttf','segoeui.ttf':'segoeuib.ttf','msyh.ttc':'msyhbd.ttc',
            'NotoSansCJK-Regular.ttc':'NotoSansCJK-Bold.ttc'}
     sibling=path.with_name(names.get(path.name,path.name))
@@ -113,17 +113,23 @@ def bold_sibling(path):
 def pdf_fonts(model,explicit=None):
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont,TTFError
+    import reportlab
+    texts=[i['text'] for i in items(model)]+[s['heading'] for s in model['sections']]+['\u2022']
+    ws.require(not any(unicodedata.bidirectional(c) in ('R','AL') for c in ''.join(texts)), 'This PDF renderer does not support right-to-left shaping (including Arabic/Hebrew). Use a shaping-capable document tool and inspect its actual export; no draft was published.')
+    chars=set(''.join(texts))-set('\n\r\t')
+    bundled=Path(reportlab.__file__).parent/'fonts/Vera.ttf'
+    candidates=font_candidates(explicit)
+    if bundled.is_file():candidates.append(bundled)
     fonts=[]
-    for index,path in enumerate(font_candidates(explicit)):
+    for index,path in enumerate(dict.fromkeys(candidates)):
         try:
             regular=TTFont('CandidateFont'+str(index),str(path))
             bold=TTFont('CandidateBold'+str(index),str(bold_sibling(path)))
             pdfmetrics.registerFont(regular);pdfmetrics.registerFont(bold)
             fonts.append((regular,bold))
+            if all(any(ord(c) in r.face.charToGlyph and ord(c) in b.face.charToGlyph for r,b in fonts) for c in chars):break
         except (OSError,TTFError):
             if explicit and path==Path(explicit):raise ws.WorkspaceError('Cannot load the supplied TrueType font: '+str(path))
-    texts=[i['text'] for i in items(model)]+[s['heading'] for s in model['sections']]+['\u2022']
-    chars=set(''.join(texts))-set('\n\r\t')
     missing=sorted(c for c in chars if not any(ord(c) in r.face.charToGlyph and ord(c) in b.face.charToGlyph for r,b in fonts))
     ws.require(not missing,'No installed TrueType font covers: '+', '.join(f'U+{ord(c):04X} ({unicodedata.name(c,"unnamed")})' for c in missing[:12])+'. Supply a Unicode .ttf/.ttc using --font (for example Noto Sans for the required language), or install a suitable font. No draft was published.')
     return fonts
@@ -208,14 +214,14 @@ def export(value,model,stem,arial=None):
         claims={'workspace_id':state['workspace_id'],'state_revision':state['revision'],'items':[{'text':i['text'],'fact_ids':i['fact_ids']} for i in items(model)],'pdf_pages':len(reader.pages),'text_extraction':'passed','visual_review':'not_performed','semantic_review':'not_performed','docx_pagination':'not_verified'}
         decision=formatting.for_model(model,state)
         pagination=pagination_review(reader,model,decision,positions)
-        claims.update(format_decision_id=decision['id'] if decision else None,format_review='saved_decision' if decision else 'not_configured',pagination=pagination)
+        claims.update(guidance_status=decision.get('guidance_status') if decision else 'not_configured',format_decision_id=decision['id'] if decision else None,format_review='saved_decision' if decision else 'not_configured',pagination=pagination)
         (temp/'draft.model.json').write_text(json.dumps(model,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         (temp/'draft.claims.json').write_text(json.dumps(claims,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         # No export may be committed after evidence changed while rendering.
         with ws.write_lock(root):
             ws.require(ws.load(root)['revision']==state['revision'],'State changed during export; reread facts and try a new export.')
             outputs=[ws.import_file(root,temp/('draft'+suffix),stem+suffix) for suffix in ('.docx','.pdf','.model.json','.claims.json')]
-    return {'outputs':outputs,'pdf_pages':len(reader.pages),'pagination':pagination,'format_review':claims['format_review'],'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
+    return {'outputs':outputs,'pdf_pages':len(reader.pages),'pagination':pagination,'format_review':claims['format_review'],'guidance_status':claims['guidance_status'],'visual_review':'not_performed','semantic_review':'not_performed','status':'draft'}
 
 def main():
     ws.configure_output()
@@ -224,7 +230,7 @@ def main():
     try:
         result=export(a.workspace,json.loads(Path(a.model).read_text(encoding='utf-8')),a.stem,a.arial); print(json.dumps(result,indent=2)); return 0
     except ImportError as e:
-        print(f'Document dependency missing: {e}. Use a workspace-local runtime with requirements-documents.txt.',file=sys.stderr); return 2
+        print(f'Document dependency missing: {e}. Run setup_runtime.py for these records and use its returned private interpreter.',file=sys.stderr); return 2
     except (ws.WorkspaceError,OSError,ValueError,KeyError,TypeError) as e:
         print(f'Document export error: {e}',file=sys.stderr); return 2
 

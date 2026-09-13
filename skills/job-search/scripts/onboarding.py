@@ -180,6 +180,7 @@ def ask(value,project,topic_id,dimension,question,expected):
     for topic in review['missing_baseline_topics']:state['onboarding']['topics'].append(topic)
     row=next((r for r in review['topics'] if r['id']==topic_id),None)
     ws.require(row is None or (row['status'] not in ('declined','deferred','not_applicable','no_example') and dimension in row['missing_dimensions']),'Topic is covered or has a saved disposition; reconcile it first.')
+    ws.require(question.count('?')+question.count('？')<=1,'Ask one question; split multiple decisions into separate turns.')
     q={'id':'q-'+uuid.uuid4().hex,'topic_id':topic_id,'dimension':dimension,'question':question,'asked_at':ws.now()}
     state['onboarding']['questions'].append(q);state['session']['next_action']='Await answer: '+question
     saved=ws.commit(root,state,expected,'Saved the next interview question')
@@ -205,8 +206,37 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
     saved=ws.commit(root,state,expected,'Saved exact candidate answer; coverage awaits reconciliation')
     return {'answer':a,'revision':saved['revision']}
 
+
+def record_statement(value, project, statement_id, text, expected):
+    root=ws.checked_root(value);state=ws.load(root)
+    # Recording the explicit move request must work before rebind can run.
+    actual=ws.checked_root(project)
+    ws.require(actual.is_dir(),'Select an existing project.')
+    if Path(state.get('onboarding',{}).get('project_root',str(actual))).is_dir():
+        check_project(state,actual)
+    else:
+        marker=actual/POINTER
+        ws.require(marker.is_file() and json.loads(marker.read_text(encoding='utf-8')).get('workspace_id')==state['workspace_id'],'Moved project must retain its matching workspace pointer.')
+    ws.require(state['revision']==expected,'Revision conflict: reread before recording the statement.')
+    ws.require(isinstance(statement_id,str) and statement_id.strip() and text.strip(),'Stable message ID and exact statement required.')
+    existing=next((r for r in state.get('statements',[]) if r['id']==statement_id),None)
+    if existing:
+        ws.require(existing['text']==text,'Statement ID already used for different text; use a new message ID for a correction.')
+        return {'statement':existing,'revision':state['revision']}
+    sid='statement-'+uuid.uuid4().hex;relative='sources/'+sid+'.txt';path=ws.inside(root,relative)
+    with path.open('x',encoding='utf-8') as stream:stream.write(text)
+    source={'id':sid,'kind':'candidate_report','recorded_at':ws.now(),'file':relative,'sha256':ws.digest(path)}
+    record={'id':statement_id,'text':text,'recorded_at':ws.now(),'source_ids':[sid]}
+    state['sources'].append(source);state.setdefault('statements',[]).append(record)
+    state['session']['next_action']='Map volunteered statement '+statement_id+' into supported facts and coverage; do not invent interview questions.'
+    saved=ws.commit(root,state,expected,'Saved exact volunteered candidate statement')
+    return {'statement':record,'revision':saved['revision']}
+
 def plan(value,project):
-    state=ws.load(value);check_project(state,project);ob=state['onboarding']
+    return plan_state(ws.load(value),value,project)
+
+def plan_state(state,value,project):
+    check_project(state,project);ob=state['onboarding']
     facts={x['id']:x for x in state['profile']['facts']}
     current=lambda ids: all(facts[x]['status'] in ('candidate_reported','verified') for x in ids)
     answers={q['onboarding_question_id']:q for q in state['interviews'] if q.get('onboarding_question_id')}
@@ -254,12 +284,14 @@ def plan(value,project):
 def main():
     ws.configure_output()
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
-    for command in ('bind','plan','rebind','ask','save-answer'):
+    for command in ('bind','plan','rebind','ask','save-answer','record-statement'):
         p=sub.add_parser(command);p.add_argument('--workspace',required=True);p.add_argument('--project',required=True)
-        if command in ('rebind','ask','save-answer'):p.add_argument('--expected-revision',type=int,required=True)
+        if command in ('rebind','ask','save-answer','record-statement'):p.add_argument('--expected-revision',type=int,required=True)
         if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
         if command=='ask':
             p.add_argument('--topic',required=True);p.add_argument('--dimension',required=True);p.add_argument('--question',required=True)
+        if command=='record-statement':
+            p.add_argument('--statement-id',required=True);p.add_argument('--text-file',required=True)
         if command=='save-answer':
             p.add_argument('--question-id',required=True);p.add_argument('--answer-file',required=True,help='UTF-8 text containing the exact candidate answer');p.add_argument('--interpretation',required=True)
     args=parser.parse_args()
@@ -268,7 +300,8 @@ def main():
         elif args.command=='plan':result=plan(args.workspace,args.project)
         elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
         elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision)
-        else:result=save_answer(args.workspace,args.project,args.question_id,Path(args.answer_file).read_text(encoding='utf-8'),args.interpretation,args.expected_revision)
+        elif args.command=='record-statement':result=record_statement(args.workspace,args.project,args.statement_id,Path(args.text_file).read_text(encoding='utf-8-sig'),args.expected_revision)
+        else:result=save_answer(args.workspace,args.project,args.question_id,Path(args.answer_file).read_text(encoding='utf-8-sig'),args.interpretation,args.expected_revision)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0
     except (ValueError,OSError,KeyError,TypeError) as e:
         print(f'Onboarding error: {e}',file=sys.stderr);return 2

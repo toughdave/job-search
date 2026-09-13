@@ -24,11 +24,9 @@ def validate(state):
             ws.require(isinstance(d.get(key),str) and d[key].strip(),f'Format {key} is required.')
         ws.stamp(d.get('recorded_at'),'format recorded_at')
         ws.refs(d.get('source_ids'),sources,'Format authorization')
-        aid=d.get('answer_id');ws.require(aid in answers,'Format authorization needs the exact saved Q&A.')
-        ws.require(set(answers[aid]['source_ids']).intersection(d['source_ids']),'Format authorization must cite its answer source.')
-        ws.require(any(sources[s]['kind'] in ('candidate_answer','candidate_report') for s in d['source_ids']),'Candidate must authorize the format.')
+        ws.candidate_authorization(state,d,'Format authorization')
         ws.refs(d.get('convention_source_ids'),sources,'Destination guidance')
-        ws.require(all(sources[s]['kind'] in ('official','employer','document') and sources[s].get('url') for s in d['convention_source_ids']),'Save URL-backed local/employer guidance for the destination.')
+        ws.require(all(sources[s]['kind'] in ('official','employer','document','skill_reference') and sources[s].get('url') for s in d['convention_source_ids']),'Save URL-backed local/employer guidance for the destination.')
         ws.refs(d.get('experience_ids'),experiences,'Reviewed work history',False)
 
 def guard_history(old,new):
@@ -61,4 +59,6 @@ def for_model(model,state):
     ws.require(d['history_current'],'Work history changed: review the length recommendation and save a new authorization.')
     for field,model_field in (('country','target_country'),('kind','kind'),('language','language'),('context','document_context'),('page_size','page_size')):
         ws.require(model.get(model_field)==d[field],f'Document {model_field} does not match the approved destination format.')
+    sources=ws.indexed(state['sources'],'sources')
+    d['guidance_status']='provisional_skill_reference' if any(sources[x]['kind']=='skill_reference' for x in d['convention_source_ids']) else 'recorded_external_source'
     return d

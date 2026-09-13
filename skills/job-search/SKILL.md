@@ -3,7 +3,7 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.7.1"
+  version: "1.8.0"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
@@ -13,7 +13,7 @@ You operate the workflow; the person supplies their resume, answers, feedback an
 
 ## Start or resume
 
-On first use or update, follow [runtime setup](references/runtime.md). Check for a usable Python interpreter, arrange a private one if absent, initialize or reopen the correct records, then run `scripts/setup_runtime.py --workspace W`. Use the returned absolute interpreter for all helpers. This installs and verifies the required local packages; copying a skill alone does not execute setup. Recheck on return with `--check-only`; repair missing or changed dependencies before dependent work. Never call the whole workflow ready merely because the files were copied.
+On first use or update, follow [runtime setup](references/runtime.md). Check for a usable Python interpreter, arrange a private one if absent, initialize or reopen the correct records, then run `scripts/setup_runtime.py --workspace W`. Use the returned absolute interpreter for all helpers. This installs and verifies the required local packages; copying a skill alone does not execute setup. Recheck once when a new session resumes with `--check-only`, not after every interview answer; repeat only after an update or runtime failure. Repair missing or changed dependencies before dependent work. Never call the whole workflow ready merely because the files were copied.
 
 Read [workspace operations](references/workspace.md) before any workspace write. Resolve resources relative to **this installed skill**, not the current directory. Use `scripts/workspace.py` for state and file writes; do not replace it with ad hoc writes. It guards a NEW private workspace, uses revisions and backups, and refuses unknown schemas. Never modify another candidate's pipeline, global memory, global skill configuration, connections, or schedules as part of onboarding. Private files must stay outside the installed skill and public source checkout.
 
@@ -26,6 +26,8 @@ On every return, read current state from disk and any pending work before decidi
 Read [project onboarding](references/onboarding.md) and [interview and evidence](references/interview.md). One-question pacing, waiting for answers, evidence gathering and file management are defaults even when invoked with only “Use job-search.” Bind the private interview to the actual selected project, verify resume intake, and run the evidence-derived checklist on every return. Never infer an attached/read resume from installation or a candidate saying yes. If no resume exists, record that answer and help build one from supported experience.
 
 Ask **one short question at a time**, then wait; use a recommendation for process choices and never suggest a personal fact as the answer. Check saved facts and exact answers before asking. Save a pending question before presenting it; save each answer or correction immediately, read it back, and reconcile coverage before proceeding. Say “saved” only after a successful write and readback. In a read-only session or response simulation, do not claim anything was saved or activated. Missing checkmarks are not proof of missing answers.
+
+A volunteered message is not a series of interviews. Save the complete message once using `onboarding.py record-statement`; map all supported facts from that source without creating questions that were never asked. If it answers the actual pending question, save the full response with `save-answer` instead. Never reconstruct fictional exact Q&A from resume bullets or a multi-fact message.
 
 Use `onboarding.py ask` and `save-answer` for the question/answer transaction; these update the next action and preserve exact text. Read [state schema and examples](references/state-schema.md) when mapping facts or adding employer entries. The first target-work question uses `target-work` / `occupation`. Location and remote/hybrid preference are separate decisions and separate turns. The helper prevents a second pending question, but you must keep each question itself to one decision.
 
@@ -45,7 +47,7 @@ Ask only missing details, accept an honest lack of experience, and preserve proj
 
 Read [search and applications](references/search.md) when screening, searching, preparing forms or handling employer replies. Every recurring search covers unfinished work and fresh discovery in the agreed scope. Record what was actually checked, including blocked sources. Save complete postings when available, deduplicate, and explain fit using sourced evidence. A thin resume means “ask or investigate,” not “no experience.”
 
-Read [documents](references/documents.md) when drafting or exporting a resume, CV or letter. Use the bundled layout and export helper or a verified available document tool. Handle dependencies in the private workspace only. Select relevant truthful evidence, preserve the master, create a new version for each draft, and inspect the actual exported pages. Present the documents and one next action, not implementation details.
+Read [documents](references/documents.md) when drafting or exporting a resume, CV or letter. Use the bundled layout and export helper or a verified available document tool. Keep dependencies in the owned local runtime cache described in [runtime setup](references/runtime.md). Select relevant truthful evidence, preserve the master, create a new version for each draft, and inspect the actual exported pages. Present the documents and one next action, not implementation details.
 
 Prepare supported application fields through final review within existing authorization. Ask for explicit approval for the specific final submission if not already authorized. Login, CAPTCHA and live assessments stay with the person under the harness's rules. Never invent an approval or reuse another candidate's consent. Confirm the employer's receipt before marking submitted; a report of clicking Submit without confirmation stays unverified. Posting closure is separate from the application outcome.
 
@@ -59,4 +61,4 @@ During onboarding, once target work and region are known, read [daily routine](r
 
 ## Finish each interaction
 
-Save and verify meaningful changes before responding. Summarize the useful result in a few sentences and show the next question **or** next action. Do not list file-maintenance chores. A turn that needs a candidate answer must wait for that answer; silence is not agreement. If tools are unavailable, identify the single missing capability honestly and preserve progress instead of pretending the action succeeded.
+Save and verify meaningful changes before responding. Summarize the useful result in a few sentences and show the next question **or** next action. Do not list file-maintenance chores. Before sending an interview reply, verify that its only question matches the one saved pending question. Do not add an approval question beside an experience question; queue that decision for a later turn. A turn that needs a candidate answer must wait for that answer; silence is not agreement. If tools are unavailable, identify the single missing capability honestly and preserve progress instead of pretending the action succeeded.

@@ -36,7 +36,7 @@ On Windows, preserve the JSON strings exactly. Some PowerShell JSON conversions 
 
 The helper verifies references and content hashes, preserves the previous state in backups, writes atomically and increments the revision. A revision conflict means reread and merge; never just alter the revision on an old draft. A saved source without a committed state is an unfinished step that can be resumed using the same immutable file.
 
-Create temporary scratch files/runtimes only within W. Persistent sources and final outputs use `import-file`; documents use the document helper, which calls the same guarded import. Never write directly to `.job-search/state.json`, backups, marker or referenced evidence files.
+Create candidate scratch files only within W. Keep installed runtimes and package downloads in the owned local cache described in [runtime setup](runtime.md). Persistent sources and final outputs use `import-file`; documents use the document helper, which calls the same guarded import. Never write directly to `.job-search/state.json`, backups, marker or referenced evidence files.
 
 ## State shape
 

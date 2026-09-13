@@ -6,13 +6,13 @@ For the AI, not a form for the candidate. Start with `workspace.py show`; copy t
 
 | Field | Values |
 | --- | --- |
-| `sources[].kind` | `resume`, `candidate_answer`, `document`, `employer`, `official`, `candidate_report` |
+| `sources[].kind` | `resume`, `candidate_answer`, `document`, `employer`, `official`, `candidate_report`, `skill_reference` |
 | `profile.facts[].category` | `employment`, `project`, `volunteering`, `education`, `certification`, `skill`, `preference`, `identity`, `other` |
 | `profile.facts[].status` | `candidate_reported`, `verified`, `unresolved`, `superseded` |
 | `applications[].stage` | `discovered`, `qualified`, `preparing`, `ready`, `submitted_unverified`, `submitted`, `blocked`, `skipped`, `withdrawn` |
 | `applications[].outcome` | `none`, `awaiting`, `positive`, `action`, `offer`, `declined` |
 | `applications[].posting_status` | `unknown`, `open`, `closed`, `expired`, `cancelled` |
-| `applications[].fit[].assessment` | `supported`, `unknown`, `gap`, `not_required` |
+| `applications[].fit[].assessment` | `supported`, `partial`, `unknown`, `gap`, `not_required` |
 | `runs[].status` | `running`, `complete`, `incomplete` |
 | `runs[].checks[].status` | `complete`, `partial`, `blocked`, `not_configured` |
 | `pending_actions[].status` | `pending`, `resolved` |
@@ -76,4 +76,8 @@ First save or reuse identity/date facts sourced to the actual resume or candidat
 
 Create a shared `profile` topic with `experience_id` and `dimensions:["responsibilities"]`, plus an occupation-specific `example` topic with that same experience ID and `dimensions:["context","personal_action","tools","result"]`. Topics require `id`, `track_id` (null for shared), `kind`, `title`, `required:true` and `dimensions`. The source must actually support the employer, title and date precision. Save role-specific facts with `experience_id`, map one dimension at a time, and retain exact Q&A. Reuse existing facts before asking. Never translate expected duties into experience.
 
+For a candidate's explicit confirmation that all employers have been listed, append a `history_reviews` entry with a unique `id`, `status: complete`, the actual `answer_id` or `statement_id`, its `source_ids`, and the exact `experience_ids` / `resume_source_ids` returned in `plan.work_history.confirmation_snapshot`. Do not infer confirmation from that snapshot. The resume-source list must match the current intake record even when `no_resume` is supported by a candidate source; do not assume it is empty. An explicit incomplete list uses `more_to_add`. This avoids guessing the inventory fields or reading helper internals.
+
 Use a new sourced superseding fact for corrections. Do not edit saved sources, interviews, employer entries, evidence mappings or helper-owned history. For less common fields, read the corresponding reference; the schema validator checks structure and reference consistency, not the truth of arbitrary prose.
+
+`statements` is an optional append-only list of `{id, text, recorded_at, source_ids}` records created by `record-statement`. They carry exact volunteered messages, not invented question/answer pairs. Map their source IDs directly into facts/coverage. `partial` fit requires current supporting fact IDs and a `remaining` string naming the unsupported part.

@@ -118,3 +118,9 @@ For another country, language, document type or application context, add a scope
 ## Optional daily search
 
 After target work and region are known, follow [daily routine](routine.md). The required `routine-choice` topic means the choice must be offered and recorded, not that automation is mandatory. Save yes, declined or deferred using the usual evidence/disposition process. Read saved answers before asking again. Confirmed yes starts the separate routine setup; preserve its incomplete state until the actual scheduler and prompt are verified.
+
+## Volunteered information and question pacing
+
+Use `onboarding.py record-statement --workspace W --project P --statement-id MESSAGE_ID --text-file UTF8_FILE --expected-revision R` for one complete unsolicited message. Keep MESSAGE_ID stable for retries. It saves one candidate-report source and one immutable statement without inventing interview questions. Map that source into as many supported facts/topic dimensions as it actually covers, with `answer_ids: []` when no question was asked. A volunteered explicit history or format approval can use `statement_id` instead of `answer_id`; never fill both.
+
+Use `save-answer` only for the real pending question, preserving the full response. When sending the next reply, read the saved pending question and ask only that question; do not add another question in an introduction, example, approval request or final sentence. Save before sending and wait. A candidate may volunteer multiple facts; one-question pacing constrains the AI's questioning, not the candidate's answer.

@@ -101,7 +101,7 @@ One-question pacing, waiting for your answers, saving progress and managing file
 
 The terminal command below copies the skill. Summoning it afterward starts these setup checks. If a required tool cannot be installed, the AI explains the specific next action and keeps unfinished setup visible.
 
-The AI should check the installation, read your resume, create a separate private place for your records, and ask one useful question at a time. It should tell you where it saved your search. If it needs an installation approval, a writable location, or a restart, follow that specific instruction before continuing.
+The AI should check the installation, read your resume, and ask one useful question at a time. Your answers and documents usually go in a private **records** folder inside your project. Large software packages stay in a separate local cache. The AI tells you where it saved your search. If it needs an installation approval, a writable location, or a restart, follow that specific instruction before continuing.
 
 For example, after reading your resume it might ask:
 
@@ -124,6 +124,8 @@ It also checks your name, email, phone, city/region, relocation preferences, edu
 You can also save common application answers during setup or when a form needs them: work authorization, sponsorship, start dates, salary expectations, working arrangements and relevant screening questions. The AI remembers each answer's scope and date, checks the actual form wording, and asks again only when something material differs. Employer-specific questions wait for that employer; sensitive disclosures remain optional. Your private answers are never included in the shared skill.
 
 ### 5. Review the first useful result
+
+After reviewing your experience and target destination, the AI recommends one or two pages and asks for your approval. A longer CV needs a relevant reason. It saves your choice and checks the actual pages for readable spacing and useful detail before presenting a draft.
 
 When enough is known and the tools are available, the AI works toward a suitable application draft. Open its documents, check the facts, and give corrections in the conversation. For example: `That role was volunteering. Please correct it.`
 
@@ -148,6 +150,8 @@ Once installed, open the **same local project**. Use the message box in your AI 
 After selecting the skill, add **Start my search** or **Continue my job search**, then send. For a first search, supply your resume or its location if you have not already done so. Sources: [OpenAI skill invocation](https://learn.chatgpt.com/docs/build-skills#how-chatgpt-and-codex-use-skills), [Claude Code skills](https://code.claude.com/docs/en/skills).
 
 **No matching skill in the picker?** Send `Use job-search.` If it cannot find the installation, use [Need help?](#if-something-stops-you). A shortcut works only after the app has loaded the installed skill; it does not install it.
+
+If you installed it during the current conversation, start a new conversation in the same project and try the shortcut again. The AI should check the actual installed files if it is still unavailable.
 
 <a name="coming-back-later"></a>
 
