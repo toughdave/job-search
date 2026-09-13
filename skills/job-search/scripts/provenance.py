@@ -8,18 +8,43 @@ import sys
 import workspace as ws
 
 PATTERN=re.compile(r'^notes/provenance-ledger-v(\d+)\.md$')
+STATUSES={'confirmed','corrected','denied_by_candidate','unverified','conflict_pending','excluded_on_current_evidence'}
 
 
-def review_text(body):
-    for number,line in enumerate(body.splitlines(),1):
+def review_text(body,state=None,root=None):
+    prose=re.sub(r'^```json\s*\n.*?^```\s*$','',body,flags=re.M|re.S)
+    for number,line in enumerate(prose.splitlines(),1):
         ws.require(not re.search(r'\b(?:excluded? permanently|permanently exclud\w*|permanent (?:ban|exclusion))\b',line,re.I),f'Ledger line {number}: exclusion depends on current evidence, not a permanent ban. Preserve the old version by link and write the current resolution.')
         ws.require(not (re.search(r'\b(?:false|disproven|denied)\b',line,re.I) and re.search(r'\b(?:unconfirmed|unverified|unmeasured|unknown)\b',line,re.I)),f'Ledger line {number}: separate conflicting resolution statuses into individual claim rows. An unmeasured result is unverified; a denied tool or duty is a separate claim.')
+    blocks=re.findall(r'^```json\s*\n(.*?)^```\s*$',body,re.M|re.S)
+    ws.require(len(blocks)==1,'New ledgers require one JSON block containing a claims list; see references/provenance.md. Historical ledgers remain readable.')
+    data=json.loads(blocks[0]);claims=data.get('claims') if isinstance(data,dict) else None
+    ws.require(isinstance(claims,list) and claims,'Ledger claims must be a nonempty list.')
+    rows=ws.indexed(claims,'provenance claims')
+    sources={s['id']:s for s in state['sources']} if state is not None else {}
+    for row in rows.values():
+        ws.require(row.get('status') in STATUSES,'Use one fixed provenance status per claim: '+', '.join(sorted(STATUSES)))
+        ws.require(isinstance(row.get('claim'),str) and row['claim'].strip(),'Claim must contain the exact original excerpt as a JSON string.')
+        ws.require(isinstance(row.get('source_id'),str) and row['source_id'],'Claim source_id required.')
+        ws.require(isinstance(row.get('rationale'),str) and row['rationale'].strip(),'Claim rationale required; it is advisory, not another status.')
+        if state is not None:
+            ws.require(row['source_id'] in sources,'Unknown original claim source.')
+            source=sources[row['source_id']];path=ws.inside(root,source['file'])
+            ws.require(path.suffix.lower() in ('.txt','.md','.json'),'Link readable saved source text for the original excerpt.')
+            raw=path.read_text(encoding='utf-8-sig')
+            if path.suffix.lower()=='.json':
+                payload=json.loads(raw);raw=payload.get('answer',payload.get('text','')) if isinstance(payload,dict) else ''
+            ws.require(row['claim'] in raw,'Claim must be an exact excerpt from its linked source; do not generalize its scope.')
+            resolution=row.get('resolution_source_ids',[]);ws.refs(resolution,sources,'Claim resolution',False)
+            if row['status'] in ('corrected','denied_by_candidate'):
+                ws.require(any(sources[s]['kind'] in ('candidate_answer','candidate_report') for s in resolution),'A correction or denial needs a candidate answer/report source.')
+    return claims
 
 
 def guard_new_documents(old,new,root):
     known={s['id'] for s in old['sources']}
     for _,source in registered(new):
-        if source['id'] not in known:review_text(ws.inside(root,source['file']).read_text(encoding='utf-8-sig'))
+        if source['id'] not in known:review_text(ws.inside(root,source['file']).read_text(encoding='utf-8-sig'),new,root)
 
 
 def registered(state):
@@ -73,7 +98,7 @@ def save(value,draft,expected):
     ws.require('onboarding' in state,'Bind the project interview before saving its ledger.')
     path=ws.inside(root,draft);ws.require(draft.startswith('scratch/'),'Prepare the ledger draft in workspace scratch.')
     body=path.read_text(encoding='utf-8-sig').strip();ws.require(body,'Ledger draft is empty.')
-    review_text(body)
+    review_text(body,state,root)
     digest=hashlib.sha256(body.encode('utf-8')).hexdigest();rows=registered(state)
     latest=rows[-1][1] if rows else None;intake=state['onboarding']['resume']
     if latest and latest.get('draft_sha256')==digest and latest.get('resume_source_ids')==intake.get('source_ids',[]):

@@ -63,3 +63,8 @@ Correct the sentence itself. “That was outside the role's scope (only this dut
 `check-reply` also refuses unresolved evidence wording, so the final summary cannot casually reintroduce a flagged claim. For a stage turn, still scan the proposed summary with the application context to check material-status labels too.
 
 A flagged employer requirement can be retained as an exact quoted excerpt and source ID on a line beginning `Employer requirement:`, `Employer posting:` or `Employer message:`. The matching source must be `employer` or `official`. This preserves useful role context while preventing that quote from being used as a candidate answer. Ordinary references to similar job roles are not system-comparison claims.
+
+
+For a stage question, use the [application question route](onboarding.md#application-questions), then run `check-reply` last. A phrase scan does not replace the persisted question/reply check.
+
+The adaptability rule targets generic traits such as “I adapt easily”, not concrete actions such as adapting a booking plan. Labelled predictions and standalone practice questions remain allowed. An `Employer requirement:` line describing similar software is role context, provided it contains no candidate self-claim. A source ID alone is not a blanket exemption for new unsupported wording.

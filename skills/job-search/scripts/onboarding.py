@@ -62,13 +62,18 @@ def validate(state, root):
         ws.require(isinstance(topic.get('required'),bool),'Topic required flag must be explicit.')
     questions=ws.indexed(ob.get('questions'),'questions')
     for q in questions.values():
-        ws.require(q.get('topic_id') in topics and q.get('dimension') in topics[q['topic_id']]['dimensions'],'Question topic/dimension mismatch.')
+        if q.get('application_id') is not None:
+            ws.require(q['application_id'] in {a['id'] for a in state['applications']} and q.get('kind') in ('application','next-stage'),'Unknown application or question kind.')
+            ws.require(q.get('topic_id') is None and q.get('dimension') is None,'Application questions cannot also be onboarding topics.')
+        else:
+            ws.require(q.get('topic_id') in topics and q.get('dimension') in topics[q['topic_id']]['dimensions'],'Question topic/dimension mismatch.')
         ws.require(isinstance(q.get('question'),str) and q['question'].strip(),'Exact pending question required.')
         ws.stamp(q.get('asked_at'),'question asked_at')
     for answer in answers.values():
         qid=answer.get('onboarding_question_id')
         if qid is not None:
             ws.require(qid in questions and answer['question']==questions[qid]['question'],'Answer must match its saved onboarding question.')
+            ws.require(answer.get('application_id')==questions[qid].get('application_id'),'Answer application must match its saved question.')
     for ev in ws.indexed(ob.get('evidence'),'interview evidence').values():
         ws.require(ev.get('topic_id') in topics and ev.get('dimension') in topics[ev['topic_id']]['dimensions'],'Evidence topic/dimension mismatch.')
         ws.refs(ev.get('source_ids'),sources,'Interview evidence')
@@ -168,13 +173,19 @@ def check_project(state,project):
     ws.require(actual.is_dir() and saved.is_dir(),'Project moved or is unavailable. Read records with workspace.py show; confirm the new location and use onboarding.py rebind.')
     ws.require(ws.same_path(actual,saved),'Different project: do not reuse this interview or its private evidence automatically. A confirmed move uses onboarding.py rebind.')
 
-def ask(value,project,topic_id,dimension,question,expected):
+def pending_questions(review):
+    return [q for row in review['topics'] for q in row['pending_questions']]+review['pending_application_questions']
+
+
+def ask(value,project,topic_id,dimension,question,expected,application_id=None,kind=None):
     root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
     ws.require(state['revision']==expected,'Revision conflict: reread before asking.')
     review=plan(root,project)
-    pending=[q for row in review['topics'] for q in row['pending_questions']]
+    ws.require((application_id is not None and topic_id is None and dimension is None and kind in ('application','next-stage')) or (application_id is None and kind is None and topic_id and dimension),'Choose --application/--kind or --topic/--dimension, not both.')
+    if application_id is not None:ws.require(any(a['id']==application_id for a in state['applications']),'Unknown application.')
+    pending=pending_questions(review)
     if pending:
-        ws.require(len(pending)==1 and pending[0]['topic_id']==topic_id and pending[0]['dimension']==dimension and pending[0]['question']==question,'Resume the existing pending question before asking another.')
+        ws.require(len(pending)==1 and pending[0].get('topic_id')==topic_id and pending[0].get('dimension')==dimension and pending[0].get('application_id')==application_id and pending[0].get('kind')==kind and pending[0]['question']==question,'Resume the existing pending question before asking another.')
         if state['session']['next_action']!='Await answer: '+question:
             state['session']['next_action']='Await answer: '+question
             state=ws.commit(root,state,expected,'Restored saved pending question as the next action')
@@ -207,6 +218,7 @@ def ask(value,project,topic_id,dimension,question,expected):
                         and not re.search(r'\b(?:review|improve|update|audit|feedback)\b',question,re.I)),
                    'Profile URL/inclusion belongs to topic linkedin-url, dimension url. Topic linkedin is the optional profile review decision.')
     q={'id':'q-'+uuid.uuid4().hex,'topic_id':topic_id,'dimension':dimension,'question':question,'asked_at':ws.now()}
+    if application_id is not None:q.update(application_id=application_id,kind=kind)
     state['onboarding']['questions'].append(q);state['session']['next_action']='Await answer: '+question
     saved=ws.commit(root,state,expected,'Saved the next interview question')
     return {'question':q,'revision':saved['revision']}
@@ -226,6 +238,7 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
     with path.open('x',encoding='utf-8') as f:json.dump({'question':q['question'],'answer':answer},f,ensure_ascii=False,indent=2)
     source={'id':sid,'kind':'candidate_answer','recorded_at':ws.now(),'file':relative,'sha256':ws.digest(path)}
     a={'id':sid,'onboarding_question_id':q['id'],'question':q['question'],'answer':answer,'interpretation':interpretation,'recorded_at':ws.now(),'source_ids':[sid]}
+    if q.get('application_id') is not None:a['application_id']=q['application_id']
     state['sources'].append(source);state['interviews'].append(a)
     state['session']['next_action']='Reconcile saved answer '+sid+' into supported facts and topic evidence before the next question.'
     saved=ws.commit(root,state,expected,'Saved exact candidate answer; coverage awaits reconciliation')
@@ -241,7 +254,7 @@ def check_reply(value,project,reply,expected):
     state=ws.load(value);check_project(state,project)
     ws.require(state['revision']==expected,'Revision conflict: recheck the reply against current state.')
     review=plan_state(state,value,project)
-    pending=[q for row in review['topics'] for q in row['pending_questions']]
+    pending=pending_questions(review)
     ws.require(len(pending)<=1,'Resolve multiple pending questions before replying.')
     text=reply.strip();ws.require(text,'Proposed reply is empty.')
     import stage_review
@@ -257,7 +270,8 @@ def check_reply(value,project,reply,expected):
         ending=next((left+question+right for left,right in wrappers if text.endswith(left+question+right)),None)
         ws.require(ending is not None and text.count(question)==1,'End the reply with the exact saved pending question, once. Surrounding emphasis or quotes are allowed; other wording must not change.')
         summary=text[:-len(ending)]
-        ws.require(not re.search(r'^\s*(?:\d+[.)]|[-*])\s+',summary,re.M),'Keep this interview reply to a short summary and the one saved question, without a checklist.')
+        if not pending[0].get('application_id'):
+            ws.require(not re.search(r'^\s*(?:\d+[.)]|[-*])\s+',summary,re.M),'Keep this interview reply to a short summary and the one saved question, without a checklist.')
     # WH-led declarative headings ("What I saved") are not requests without a question mark.
     direct=r'(?:^|[.!:\n]\s*)(?:please\s+)?(?:also\s+)?(?:tell me|provide|share|confirm|choose|select|let me know|send me|attach|would you|could you|can you)\b'
     indirect=r"\b(?:you (?:can|could|may|should) (?:also )?(?:share|send|provide|tell me|let me know|attach)|it (?:would|could|might|will) (?:also )?help to (?:know|have|get)|(?:please|also) (?:share|send|provide|tell me|let me know))\b"
@@ -314,7 +328,7 @@ def plan_state(state,value,project):
         status=disposition or ('answered' if not missing else 'partial' if covered else 'unanswered')
         pending=[];unmapped=[]
         for q in ob['questions']:
-            if q['topic_id']!=topic['id'] or q['dimension'] not in missing:continue
+            if q.get('topic_id')!=topic['id'] or q.get('dimension') not in missing:continue
             if q['id'] in answers:unmapped.append(answers[q['id']]['id'])
             elif not disposition:pending.append(q)
         rows.append({'id':topic['id'],'title':topic['title'],'experience_id':topic.get('experience_id'),'status':status,'checked':status=='answered',
@@ -335,6 +349,8 @@ def plan_state(state,value,project):
     ledger=provenance.plan(state,ws.checked_root(value))
     return {'workspace_id':state['workspace_id'],'revision':state['revision'],'project_root':ob['project_root'],
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
+        'pending_application_questions':[q for q in ob['questions'] if q.get('application_id') and q['id'] not in answers],
+        'application_answers':[{'application_id':q['application_id'],'question_id':q['id'],'answer_id':answers[q['id']]['id']} for q in ob['questions'] if q.get('application_id') and q['id'] in answers],
         'work_history':history,
         'linkedin':linkedin.plan(state),
         'document_formats':formatting.plan(state),
@@ -354,7 +370,7 @@ def main():
         if command=='check-reply':p.add_argument('--reply-file',required=True,help='Full proposed candidate-facing reply, not only its question')
         if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
         if command=='ask':
-            p.add_argument('--topic',required=True);p.add_argument('--dimension',required=True);p.add_argument('--question',required=True)
+            p.add_argument('--topic');p.add_argument('--dimension');p.add_argument('--application');p.add_argument('--kind',choices=('application','next-stage'));p.add_argument('--question',required=True)
         if command=='record-statement':
             p.add_argument('--statement-id',required=True);p.add_argument('--text-file',required=True,help='UTF-8 text of the ENTIRE received message, including requests and postings; do not extract only personal facts')
         if command=='save-answer':
@@ -365,7 +381,7 @@ def main():
         elif args.command=='plan':result=plan(args.workspace,args.project)
         elif args.command=='check-reply':result=check_reply(args.workspace,args.project,Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision)
         elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
-        elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision)
+        elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision,args.application,args.kind)
         elif args.command=='record-statement':result=record_statement(args.workspace,args.project,args.statement_id,Path(args.text_file).read_text(encoding='utf-8-sig'),args.expected_revision)
         else:result=save_answer(args.workspace,args.project,args.question_id,Path(args.answer_file).read_text(encoding='utf-8-sig'),args.interpretation,args.expected_revision)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0

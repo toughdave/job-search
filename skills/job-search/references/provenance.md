@@ -38,4 +38,37 @@ Reconcile disagreements in employer names, periods, scope, tools and metrics aga
 
 Rebuild the current ledger as one claim per row: original excerpt/source, grade, current status, resolution source and rationale. Keep previous versions by the helper's link. Do not copy an old grouped resolution and add a contradictory sentence beneath it. A date conflict, denied tool, denied duty and unmeasured metric require separate rows.
 
-New ledger saves and registrations refuse permanent-exclusion wording and a row that mixes denied/false with unverified/unmeasured statuses. Split such a row into its actual claims. Historical ledgers remain readable. These checks protect the observed bookkeeping/wording boundaries; they do not decide whether a candidate's account is true.
+New saves and registrations require the structured claim block below. Historical ledgers remain readable and repairable; convert their current claims when writing a new version. Keep rationale advisory and use the structured status as the authoritative resolution.
+
+
+## Structured current claims
+
+Include exactly one fenced `json` block with a nonempty `claims` list in every new ledger. Surround it with the source inventory and lineage notes. Each claim has a unique `id`, an exact original excerpt in the JSON string `claim`, its readable `source_id`, one fixed `status`, and a short `rationale`. The helper checks the excerpt against the saved source text, so keep the employer/duty scope verbatim. Use a saved extracted text source for a PDF or DOCX. Optional `resolution_source_ids` identify later answers; corrections and denials require a candidate-answer/report source there. Keep linked fact IDs, grade and lineage as additional review metadata when useful.
+
+```json
+{
+  "claims": [
+    {
+      "id": "no-show-metric",
+      "claim": "Reduced no-shows by 30%.",
+      "source_id": "older-resume-text",
+      "status": "unverified",
+      "resolution_source_ids": ["candidate-correction"],
+      "rationale": "The candidate did not measure the outcome; no percentage is supported."
+    }
+  ]
+}
+```
+
+The example IDs must be replaced with actual saved sources. Statuses are:
+
+| Status | Meaning |
+| --- | --- |
+| `confirmed` | The available evidence supports the original claim; this is not independent verification by itself. |
+| `corrected` | A sourced correction replaces the original claim; retain the original excerpt and cite the correction. |
+| `denied_by_candidate` | The candidate explicitly denied this exact claim. |
+| `unverified` | Support is missing or a claimed result was not measured. |
+| `conflict_pending` | Sources conflict and the decision is unresolved. |
+| `excluded_on_current_evidence` | Do not reuse under current evidence; preserve the reason and allow later correction. |
+
+Do not invent combined statuses or infer a denial from “not measured”. Rationale is explanatory, not a second status field. The helper verifies structure, source references and exact excerpts; it cannot determine whether the selected status faithfully interprets every source. Read the actual correction and review that decision before reusing a claim.

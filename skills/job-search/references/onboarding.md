@@ -153,3 +153,17 @@ For several resume versions, follow [provenance](provenance.md): preserve each o
 ## Original-message capture
 
 The opening invocation and request belong to the exact message too. If the original starts “Use job-search. Please correct the last records,” those words must appear in the saved answer/statement. Copy from the original user turn rather than skill arguments, compare its opening and closing sentences, then verify the complete returned text before extracting facts. If the host exposes only a summary, report incomplete capture instead of calling it exact.
+
+
+## Application questions
+
+Use the same question/answer tools for a particular application's availability, logistics or other missing decision:
+
+```sh
+python S/scripts/onboarding.py ask --workspace W --project P --application APP_ID --kind next-stage --question "Are you available for the proposed call?" --expected-revision N
+python S/scripts/onboarding.py check-reply --workspace W --project P --reply-file scratch/reply.txt --expected-revision N
+```
+
+Use the returned revision for the second command. `--kind` is `next-stage` or `application`; do not combine this route with `--topic`/`--dimension`. The application must exist in these project records. One pending question is allowed across active onboarding and application questions. Resume an existing pending question before asking another. Never silently discard a question to switch applications.
+
+`plan` returns `pending_application_questions` and `application_answers`. `save-answer` accepts the returned question ID and the entire response using the existing arguments. Its saved answer retains `application_id`; map that source into application facts/logistics without treating it as profile coverage. An answer is not automatically consent to send a message or accept an event. On restart, reuse the saved question or answer. Application replies may summarize delivered files in a short list, but must end with exactly the saved question and contain no other requests.
