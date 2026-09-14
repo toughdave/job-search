@@ -8,22 +8,23 @@ import workspace as ws
 
 PATTERNS={
  'learning_speed':r'\b(?:(?:learn\w*|pick\w*\s+up)\b[^.?!\n]{0,75}\b(?:quick\w*|fast)|(?:quick\w*|fast)\s+learn\w*)\b',
- 'adaptability':r'\b(?:adaptable|adaptability)\b|\b(?:I|you|candidate)\b[^.?!\n]{0,20}\badapt(?:s|ed|ing)?\s+(?:easily|quickly|well|fast)\b',
+ 'adaptability':r'\b(?:adaptable|adaptability)\b|\b(?:I|you|candidate)\b[^.?!\n]{0,20}\b(?:adapt(?:s|ed|ing)?\s+(?:easily|quickly|well|fast)|(?:easily|quickly|well|fast)\s+adapt(?:s|ed|ing)?)\b',
  'system_similarity':r'\b(?:similar\b[^.?!\n]{0,60}\b(?:systems?|software|platforms?|tools?|products?)|(?:systems?|software|platforms?|tools?|products?)[^.?!\n]{0,40}\bsimilar)\b',
  'role_scope':r"\b(?:(?:(?:was|were|is)(?:n\x27t| not)|not)\s+part\s+of\s+(?:[\w-]+\s+){0,4}(?:role|job)|outside\s+(?:(?:[\w-]+\s+){0,4}(?:role|job)(?:\x27s)?\s+scope|scope\s+of\s+(?:[\w-]+\s+){0,4}(?:role|job)|what\s+(?:my|the|that|this)\s+(?:role|job)\s+covered))\b"
 }
 
 
 def scan(text,has_submission=False):
-    flags=[]
+    import calendar_review
+    flags=calendar_review.scan(text)
     for number,line in enumerate(text.splitlines(),1):
         normalized=line.replace('’',"'")
         # A standalone practice question is not a candidate self-claim.
         qtext=re.sub(r'^\s*(?:[-*]\s+|\d+[.)]\s+)','',normalized).strip().strip('*_\"“” ')
         question=bool(re.match(r'^(?:how|what|why|when|where|which|who|do|does|did|can|could|would|will|are|is|have|has|tell me|describe|explain)\b',qtext,re.I)) and qtext.endswith('?') and not re.search(r'[.?!]',qtext[:-1])
         for kind,pattern in PATTERNS.items():
-            employer_similarity=kind=='system_similarity' and re.match(r'^\s*Employer requirement\s*:',normalized,re.I) and not re.search(r"\b(?:I|my|we|our|candidate)\b",normalized,re.I)
-            if employer_similarity:continue
+            employer_requirement=kind in ('system_similarity','adaptability','learning_speed') and re.match(r'^\s*Employer requirement\s*:',normalized,re.I) and not re.search(r"\b(?:I|my|we|our|candidate)\b",normalized,re.I)
+            if employer_requirement:continue
             if not question and re.search(pattern,normalized,re.I):flags.append({'line':number,'kind':kind,'text':line})
         if not has_submission and re.search(r'\bsubmitted\s+(?:resume|cv|letter|materials)\b',normalized,re.I):
             flags.append({'line':number,'kind':'unverified_submission_label','text':line})
@@ -47,7 +48,7 @@ def supported_quote(flag,state,root):
 
 
 def unresolved(text,state,root,has_submission=False):
-    return [f for f in scan(text,has_submission) if not supported_quote(f,state,root)]
+    return [f for f in scan(text,has_submission) if f.get('severity')!='review' and not supported_quote(f,state,root)]
 
 
 def guard_new_documents(old,new,root):
@@ -71,7 +72,8 @@ def review(value,application_id,relative,fact_ids=()):
     flags=scan(text,bool(app.get('submission')))
     blocking=unresolved(text,state,root,bool(app.get('submission')))
     ws.require(ws.digest(path)==before,'Draft changed during review; scan its current version.')
-    return {'file':relative,'sha256':before,'status':'review_required' if blocking else 'no_unresolved_phrase_flags','flags':flags,'unresolved_flags':blocking,
+    return {'file':relative,'sha256':before,'status':'review_required' if blocking or any(f.get('severity')=='review' for f in flags) else 'no_unresolved_phrase_flags','flags':flags,'unresolved_flags':blocking,
+            'review_notes':[f for f in flags if f.get('severity')=='review'],
             'evidence':[{'id':fid,'claim':facts[fid]['claim'],'limits':facts[fid]['limits'],'status':facts[fid]['status'],'source_ids':facts[fid]['source_ids']} for fid in dict.fromkeys(fact_ids)],
             'limitation':'Limited English phrase scan. Questions, quoted source text and supported claims can be flagged; paraphrases can be missed. Flags are not proof of falsehood and a clear scan is not approval.',
             'next_action':'Read each flagged line against the actual candidate source. Remove unsupported self-claims; retain precise scope. Save a short resolution for justified wording. Also check promised sections, headings and the proposed chat summary. Rescan after meaningful edits, not repeatedly without changes.'}

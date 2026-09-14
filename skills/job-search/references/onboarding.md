@@ -146,7 +146,7 @@ The compound-question guard also recognizes `or` and semicolons between interrog
 Both `record-statement --text-file` and `save-answer --answer-file` take the **entire received message**, including extra requests, pasted postings, line breaks and punctuation. Verify the returned full text and `captured_characters` against the original before extracting facts. Do not reduce a statement to its personal-fact sentences. A posting can also be saved as an employer source; that extra copy never replaces the complete received message and never establishes that the candidate performed its duties. The helper cannot detect content that the caller omits.
 
 
-`check-reply` returns only `send_verbatim`, with no note, status or metadata. Output that value alone: the first characters and the entire final reply must match it. A bold, italic or quoted final question is allowed when its wording still exactly matches the pending question. A heading such as “What I saved:” is declarative; common indirect requests and validation prefaces are refused. Either/or preference choices remain bounded English heuristics, not a general language parser or host composer interceptor.
+`check-reply` returns `send_verbatim`. It may also return `review_notes` for a weekday/date whose year is missing: check the saved context without guessing the year. Output only `send_verbatim`: the first characters and the entire final reply must match it. A bold, italic or quoted final question is allowed when its wording still exactly matches the pending question. A heading such as “What I saved:” is declarative; common indirect requests and validation prefaces are refused. Either/or preference choices remain bounded English heuristics, not a general language parser or host composer interceptor.
 
 For several resume versions, follow [provenance](provenance.md): preserve each original, map claim lineage and corroboration, and reconcile the combined employer inventory. Either/or checks now recognize preference/shared-verb constructions instead of topic names; judge whether the alternatives concern one decision. The checker can miss paraphrases such as “Feel free to add…” or validation narration and can flag legitimate phrasing. Its language checks are advisory in scope, while the exact pending-question/revision checks remain structural requirements.
 
@@ -167,3 +167,19 @@ python S/scripts/onboarding.py check-reply --workspace W --project P --reply-fil
 Use the returned revision for the second command. `--kind` is `next-stage` or `application`; do not combine this route with `--topic`/`--dimension`. The application must exist in these project records. One pending question is allowed across active onboarding and application questions. Resume an existing pending question before asking another. Never silently discard a question to switch applications.
 
 `plan` returns `pending_application_questions` and `application_answers`. `save-answer` accepts the returned question ID and the entire response using the existing arguments. Its saved answer retains `application_id`; map that source into application facts/logistics without treating it as profile coverage. An answer is not automatically consent to send a message or accept an event. On restart, reuse the saved question or answer. Application replies may summarize delivered files in a short list, but must end with exactly the saved question and contain no other requests.
+
+Saving an application answer updates that application's `next_action` to reconcile the answer and set the next step before any new external action. After reviewing the full response, replace that reminder with an accurate action such as “Prepare the candidate's confirmation reply; not sent.” Other applications remain unchanged.
+
+## Correcting a pending question
+
+Before repeating a saved question, verify its logistics against the original invitation. `ask` and `check-reply` refuse explicit English weekday/date mismatches and impossible dates. They return a nonblocking review note when the year is missing. Do not assume a year or repeat an error with a disclaimer above it.
+
+If the one pending question is incorrect, append its correction in the same application/kind or topic/dimension scope:
+
+```sh
+python S/scripts/onboarding.py ask --workspace W --project P --application APP_ID --kind next-stage --replace-question OLD_QUESTION_ID --reason "The saved weekday was incorrect; checked the original invitation." --question "Are you available on Friday, September 18, 2026?" --expected-revision N
+```
+
+The example date is illustrative; use the actual invitation. Read the returned question ID and revision, then run `check-reply` with the corrected wording. For a profile question, use its original `--topic` and `--dimension` instead of application flags. Both replacement ID and reason are required. The helper appends a new question with `supersedes` and `correction_reason`, preserves the original, and makes only the replacement pending. Repeating the same correction is safe. Save the response against the new ID; the old ID is refused.
+
+This route cannot change the question's scope or replace an answered question. Preserve an already received answer and record any later correction as a separate, complete candidate statement with sourced fact reconciliation. Never edit historical question text or silently reinterpret an answer to different wording.

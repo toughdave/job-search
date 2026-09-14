@@ -61,6 +61,7 @@ def validate(state, root):
             ws.require({'context','personal_action','tools','result'}.issubset(dims),'Example topics need context, personal action, tools/methods and result.')
         ws.require(isinstance(topic.get('required'),bool),'Topic required flag must be explicit.')
     questions=ws.indexed(ob.get('questions'),'questions')
+    seen=set();replaced=set()
     for q in questions.values():
         if q.get('application_id') is not None:
             ws.require(q['application_id'] in {a['id'] for a in state['applications']} and q.get('kind') in ('application','next-stage'),'Unknown application or question kind.')
@@ -69,6 +70,14 @@ def validate(state, root):
             ws.require(q.get('topic_id') in topics and q.get('dimension') in topics[q['topic_id']]['dimensions'],'Question topic/dimension mismatch.')
         ws.require(isinstance(q.get('question'),str) and q['question'].strip(),'Exact pending question required.')
         ws.stamp(q.get('asked_at'),'question asked_at')
+        if q.get('supersedes') is not None:
+            old=q['supersedes']
+            ws.require(old in seen and old not in replaced,'Question correction must replace one earlier question once.')
+            ws.require(all(q.get(k)==questions[old].get(k) for k in ('topic_id','dimension','application_id','kind')),'Question correction must keep the same scope.')
+            ws.require(isinstance(q.get('correction_reason'),str) and q['correction_reason'].strip() and q['question']!=questions[old]['question'],'Correction needs changed wording and a reason.')
+            ws.require(not any(a.get('onboarding_question_id')==old for a in answers.values()),'An answered question cannot be replaced; preserve its answer and record a separate sourced correction.')
+            replaced.add(old)
+        seen.add(q['id'])
     for answer in answers.values():
         qid=answer.get('onboarding_question_id')
         if qid is not None:
@@ -177,19 +186,33 @@ def pending_questions(review):
     return [q for row in review['topics'] for q in row['pending_questions']]+review['pending_application_questions']
 
 
-def ask(value,project,topic_id,dimension,question,expected,application_id=None,kind=None):
+def ask(value,project,topic_id,dimension,question,expected,application_id=None,kind=None,replace_question=None,reason=None):
     root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
     ws.require(state['revision']==expected,'Revision conflict: reread before asking.')
     review=plan(root,project)
     ws.require((application_id is not None and topic_id is None and dimension is None and kind in ('application','next-stage')) or (application_id is None and kind is None and topic_id and dimension),'Choose --application/--kind or --topic/--dimension, not both.')
     if application_id is not None:ws.require(any(a['id']==application_id for a in state['applications']),'Unknown application.')
     pending=pending_questions(review)
-    if pending:
+    import calendar_review
+    calendar_notes=calendar_review.check(question)
+    ws.require((replace_question is None and reason is None) or (replace_question and isinstance(reason,str) and reason.strip()),'A replacement needs --replace-question and --reason together.')
+    scope=lambda q:all(q.get(k)==v for k,v in (('topic_id',topic_id),('dimension',dimension),('application_id',application_id),('kind',kind)))
+    replacement=False
+    if replace_question is not None:
+        ws.require(len(pending)==1 and scope(pending[0]),'Correct the one pending question in the same scope.')
+        if pending[0].get('supersedes')==replace_question and pending[0]['question']==question and pending[0].get('correction_reason')==reason:
+            if state['session']['next_action']!='Await answer: '+question:
+                state['session']['next_action']='Await answer: '+question
+                state=ws.commit(root,state,expected,'Restored corrected pending question as the next action')
+            return {'question':pending[0],'revision':state['revision'],**({'review_notes':calendar_notes} if calendar_notes else {})}
+        ws.require(pending[0]['id']==replace_question and pending[0]['question']!=question,'Replace the current pending question with corrected wording.')
+        replacement=True
+    if pending and not replacement:
         ws.require(len(pending)==1 and pending[0].get('topic_id')==topic_id and pending[0].get('dimension')==dimension and pending[0].get('application_id')==application_id and pending[0].get('kind')==kind and pending[0]['question']==question,'Resume the existing pending question before asking another.')
         if state['session']['next_action']!='Await answer: '+question:
             state['session']['next_action']='Await answer: '+question
             state=ws.commit(root,state,expected,'Restored saved pending question as the next action')
-        return {'question':pending[0],'revision':state['revision']}
+        return {'question':pending[0],'revision':state['revision'],**({'review_notes':calendar_notes} if calendar_notes else {})}
     ws.require(not any(row['unmapped_answer_ids'] for row in review['topics'] if row['status'] not in ('declined','deferred','not_applicable','no_example')),'Reconcile saved unmapped answers before asking another question.')
     for topic in review['missing_baseline_topics']:state['onboarding']['topics'].append(topic)
     row=next((r for r in review['topics'] if r['id']==topic_id),None)
@@ -219,9 +242,10 @@ def ask(value,project,topic_id,dimension,question,expected,application_id=None,k
                    'Profile URL/inclusion belongs to topic linkedin-url, dimension url. Topic linkedin is the optional profile review decision.')
     q={'id':'q-'+uuid.uuid4().hex,'topic_id':topic_id,'dimension':dimension,'question':question,'asked_at':ws.now()}
     if application_id is not None:q.update(application_id=application_id,kind=kind)
+    if replacement:q.update(supersedes=replace_question,correction_reason=reason)
     state['onboarding']['questions'].append(q);state['session']['next_action']='Await answer: '+question
     saved=ws.commit(root,state,expected,'Saved the next interview question')
-    return {'question':q,'revision':saved['revision']}
+    return {'question':q,'revision':saved['revision'],**({'review_notes':calendar_notes} if calendar_notes else {})}
 
 def save_answer(value,project,question_id,answer,interpretation,expected):
     root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
@@ -232,6 +256,7 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
     if existing:
         ws.require(existing['answer']==answer and existing['interpretation']==interpretation,'Answer already saved; append a sourced correction rather than overwrite it.')
         return {'answer':existing,'revision':state['revision'],'captured_characters':len(answer)}
+    ws.require(not any(item.get('supersedes')==question_id for item in state['onboarding']['questions']),'This question was replaced; save the answer against the current question ID.')
     ws.require(answer.strip() and interpretation.strip(),'Exact answer and a separate interpretation are required.')
     sid='answer-'+uuid.uuid4().hex;relative='sources/'+sid+'.json'
     path=ws.inside(root,relative)
@@ -241,6 +266,9 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
     if q.get('application_id') is not None:a['application_id']=q['application_id']
     state['sources'].append(source);state['interviews'].append(a)
     state['session']['next_action']='Reconcile saved answer '+sid+' into supported facts and topic evidence before the next question.'
+    if q.get('application_id') is not None:
+        application=next(a for a in state['applications'] if a['id']==q['application_id'])
+        application['next_action']='Reconcile candidate answer '+sid+' and set the next step for this application before any new external action.'
     saved=ws.commit(root,state,expected,'Saved exact candidate answer; coverage awaits reconciliation')
     return {'answer':a,'revision':saved['revision'],'captured_characters':len(answer),
             'capture_instruction':'Compare this saved answer with the full received message, including pasted postings and extra details. A saved file alone cannot prove the composer message was copied completely.'}
@@ -257,6 +285,8 @@ def check_reply(value,project,reply,expected):
     pending=pending_questions(review)
     ws.require(len(pending)<=1,'Resolve multiple pending questions before replying.')
     text=reply.strip();ws.require(text,'Proposed reply is empty.')
+    import calendar_review
+    calendar_notes=calendar_review.check(text)
     import stage_review
     flags=stage_review.unresolved(text,state,ws.checked_root(value),True)
     ws.require(not flags,'Reply contains unresolved evidence wording: '+json.dumps(flags,ensure_ascii=False)+'. Remove the broader claim; keep the specific supported experience. A disclaimer does not fix it.')
@@ -277,7 +307,7 @@ def check_reply(value,project,reply,expected):
     indirect=r"\b(?:you (?:can|could|may|should) (?:also )?(?:share|send|provide|tell me|let me know|attach)|it (?:would|could|might|will) (?:also )?help to (?:know|have|get)|(?:please|also) (?:share|send|provide|tell me|let me know))\b"
     ws.require(not re.search(r'[?？]',summary) and not re.search(direct,summary,re.I) and not re.search(indirect,summary,re.I),
                'Reply contains an additional or unsaved request. Save one question with ask and remove the other asks before checking again.')
-    return {'send_verbatim':text}
+    return {'send_verbatim':text,**({'review_notes':calendar_notes} if calendar_notes else {})}
 
 
 
@@ -314,6 +344,7 @@ def plan_state(state,value,project):
     facts={x['id']:x for x in state['profile']['facts']}
     current=lambda ids: all(facts[x]['status'] in ('candidate_reported','verified') for x in ids)
     answers={q['onboarding_question_id']:q for q in state['interviews'] if q.get('onboarding_question_id')}
+    replaced_questions={q['supersedes'] for q in ob['questions'] if q.get('supersedes')}
     dispositions={x['topic_id']:x for x in ob['dispositions']}
     replaced={e['supersedes'] for e in ob.get('experiences',[]) if e.get('supersedes')}
     rows=[]
@@ -328,6 +359,7 @@ def plan_state(state,value,project):
         status=disposition or ('answered' if not missing else 'partial' if covered else 'unanswered')
         pending=[];unmapped=[]
         for q in ob['questions']:
+            if q['id'] in replaced_questions:continue
             if q.get('topic_id')!=topic['id'] or q.get('dimension') not in missing:continue
             if q['id'] in answers:unmapped.append(answers[q['id']]['id'])
             elif not disposition:pending.append(q)
@@ -349,7 +381,7 @@ def plan_state(state,value,project):
     ledger=provenance.plan(state,ws.checked_root(value))
     return {'workspace_id':state['workspace_id'],'revision':state['revision'],'project_root':ob['project_root'],
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
-        'pending_application_questions':[q for q in ob['questions'] if q.get('application_id') and q['id'] not in answers],
+        'pending_application_questions':[q for q in ob['questions'] if q.get('application_id') and q['id'] not in answers and q['id'] not in replaced_questions],
         'application_answers':[{'application_id':q['application_id'],'question_id':q['id'],'answer_id':answers[q['id']]['id']} for q in ob['questions'] if q.get('application_id') and q['id'] in answers],
         'work_history':history,
         'linkedin':linkedin.plan(state),
@@ -371,6 +403,7 @@ def main():
         if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
         if command=='ask':
             p.add_argument('--topic');p.add_argument('--dimension');p.add_argument('--application');p.add_argument('--kind',choices=('application','next-stage'));p.add_argument('--question',required=True)
+            p.add_argument('--replace-question');p.add_argument('--reason')
         if command=='record-statement':
             p.add_argument('--statement-id',required=True);p.add_argument('--text-file',required=True,help='UTF-8 text of the ENTIRE received message, including requests and postings; do not extract only personal facts')
         if command=='save-answer':
@@ -381,7 +414,7 @@ def main():
         elif args.command=='plan':result=plan(args.workspace,args.project)
         elif args.command=='check-reply':result=check_reply(args.workspace,args.project,Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision)
         elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
-        elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision,args.application,args.kind)
+        elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision,args.application,args.kind,args.replace_question,args.reason)
         elif args.command=='record-statement':result=record_statement(args.workspace,args.project,args.statement_id,Path(args.text_file).read_text(encoding='utf-8-sig'),args.expected_revision)
         else:result=save_answer(args.workspace,args.project,args.question_id,Path(args.answer_file).read_text(encoding='utf-8-sig'),args.interpretation,args.expected_revision)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0

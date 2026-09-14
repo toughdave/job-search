@@ -36,6 +36,8 @@ PDF viewing is required to inspect generated pages. If a Word document will be u
 
 [Dependency details and setup checks](docs/setup.md#prerequisites-and-dependencies).
 
+**Allow for usage.** Tailoring documents, visually checking each page and preparing upload copies can use a substantial part of your AI plan's allowance. Limits and any API charges depend on your app, model and plan. Ask for **PDF only** when a Word file is not required to reduce the work. If you hit a limit, return to the same project after it resets.
+
 ### 1. Open Codex or Claude Code
 
 #### a. Install and sign in
