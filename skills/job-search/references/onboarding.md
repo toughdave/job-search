@@ -133,13 +133,13 @@ Use `save-answer` only for the real pending question, preserving the full respon
 
 ## Check the actual reply and full input
 
-Before sending each interview reply, including after volunteered facts and when `questions` is empty, run:
+For an optional read-only draft check, including when `questions` is empty, use the command below. For the actual final reply use `finish-reply` in the next section, which also requires the received message:
 
 ```sh
 python S/scripts/onboarding.py check-reply --workspace W --project P --reply-file W/scratch/reply.txt --expected-revision N
 ```
 
-Write the entire proposed reply in that UTF-8 file. If an answer is needed, save one `ask` first, then end the reply with that exact pending question. Keep the preceding progress summary short and declarative. Do not send numbered requests, combine email and phone, or add another employer example or scheduling choice beside it. Send the checked text unchanged and wait. With no pending question, a declarative progress update is valid; an unsaved request is not. The check reads state without changing it, checks its revision and uses English request heuristics; the AI must still judge meaning and must actually call it. It cannot intercept an unsubmitted composer reply.
+Write the entire proposed reply in that UTF-8 file. If an answer is needed, save one `ask` first, then end the reply with that exact pending question. Keep the preceding progress summary short and declarative. Do not send numbered requests, combine email and phone, or add another employer example or scheduling choice beside it. Use `finish-reply` before final delivery, then send its returned text unchanged and wait. With no pending question, a declarative progress update is valid; an unsaved request is not. The check reads state without changing it, checks its revision and uses English request heuristics; the AI must still judge meaning and must actually call it. It cannot intercept an unsubmitted composer reply.
 
 The compound-question guard also recognizes `or` and semicolons between interrogative clauses. A genuine single alternative such as “Would you prefer remote or hybrid work?” remains valid.
 
@@ -175,7 +175,7 @@ Thank you.
 Run the final check with the additional workspace-relative file path:
 
 ```sh
-python S/scripts/onboarding.py check-reply --workspace W --project P --reply-file W/scratch/reply.txt --outgoing-draft-file scratch/recruiter-reply.txt --expected-revision N
+python S/scripts/onboarding.py finish-reply --workspace W --project P --message-id TURN_ID --message-file ABSOLUTE_MESSAGE_FILE --reply-file ABSOLUTE_REPLY_FILE --outgoing-draft-file scratch/recruiter-reply.txt --expected-revision N
 ```
 
 The checker requires one matching block and exact draft text (ignoring terminal newlines in the source file). It excludes only that block from candidate-request detection. Dates and evidence wording are checked across the entire reply, including the draft. Extra candidate questions outside the block still fail; any saved pending question must appear once at the very end, outside the block. A missing, duplicated, changed or nested-fence draft is refused. Without the flag there is no exemption.
@@ -189,7 +189,7 @@ Use the same question/answer tools for a particular application's availability, 
 
 ```sh
 python S/scripts/onboarding.py ask --workspace W --project P --application APP_ID --kind next-stage --question "Are you available for the proposed call?" --expected-revision N
-python S/scripts/onboarding.py check-reply --workspace W --project P --reply-file scratch/reply.txt --expected-revision N
+python S/scripts/onboarding.py finish-reply --workspace W --project P --message-id TURN_ID --message-file ABSOLUTE_MESSAGE_FILE --reply-file ABSOLUTE_REPLY_FILE --expected-revision N
 ```
 
 Use the returned revision for the second command. `--kind` is `next-stage` or `application`; do not combine this route with `--topic`/`--dimension`. The application must exist in these project records. One pending question is allowed across active onboarding and application questions. Resume an existing pending question before asking another. Never silently discard a question to switch applications.
@@ -208,6 +208,24 @@ If the one pending question is incorrect, append its correction in the same appl
 python S/scripts/onboarding.py ask --workspace W --project P --application APP_ID --kind next-stage --replace-question OLD_QUESTION_ID --reason "The saved weekday was incorrect; checked the original invitation." --question "Are you available on Friday, September 18, 2026?" --expected-revision N
 ```
 
-The example date is illustrative; use the actual invitation. Read the returned question ID and revision, then run `check-reply` with the corrected wording. For a profile question, use its original `--topic` and `--dimension` instead of application flags. Both replacement ID and reason are required. The helper appends a new question with `supersedes` and `correction_reason`, preserves the original, and makes only the replacement pending. Repeating the same correction is safe. Save the response against the new ID; the old ID is refused.
+The example date is illustrative; use the actual invitation. Read the returned question ID and revision, then run `finish-reply` with the full original message and corrected wording. For a profile question, use its original `--topic` and `--dimension` instead of application flags. Both replacement ID and reason are required. The helper appends a new question with `supersedes` and `correction_reason`, preserves the original, and makes only the replacement pending. Repeating the same correction is safe. Save the response against the new ID; the old ID is refused.
 
 This route cannot change the question's scope or replace an answered question. Preserve an already received answer and record any later correction as a separate, complete candidate statement with sourced fact reconciliation. Never edit historical question text or silently reinterpret an answer to different wording.
+
+## Finish the reply
+
+Every final response uses `finish-reply`, including “make it shorter” or other requests with no new profile facts. Save the entire original user message in a UTF-8 file and the proposed response separately. Use a stable ID for this received turn and the current revision:
+
+```sh
+python S/scripts/onboarding.py finish-reply --workspace W --project P --message-id TURN_ID --message-file ABSOLUTE_MESSAGE_FILE --reply-file ABSOLUTE_REPLY_FILE --expected-revision N
+```
+
+This saves a missing message as an immutable statement before checking the reply. If step 3 already saved the full message with `save-answer` or `record-statement`, supply `--capture-source-id SOURCE_ID`; the helper verifies exact equality and avoids a duplicate. A partial source is refused. Keep `save-answer` for actual pending questions; this final capture does not invent an interview answer or map facts automatically. Different turns need different message IDs even if their text is identical. A failed reply check may leave the valid message captured; retry with the same turn ID and fresh revision.
+
+For an outgoing draft, add `--outgoing-draft-file scratch/recruiter-reply.txt` using the same labelled input block described above. The helper returns an ordinary, unlabelled code block in `send_verbatim` for the candidate to copy. It removes only the internal fence label, never the recipient question or message text. Send that returned value exactly; do not describe the check, add text or reformat it. `check-reply` remains a read-only compatibility/probe command and does not replace this final capture step.
+
+All message/reply/answer/text file inputs are normal filesystem paths; prefer absolute paths to avoid current-directory confusion. `--outgoing-draft-file` is explicitly workspace-relative. Capture proves only the content passed in: the AI must compare the entire message file against the original host turn, not a skill-invocation summary. The helper cannot intercept a host that skips it.
+
+## Optional inbox interview
+
+After the application email is confirmed, offer [mail setup](mail.md) through `mail-choice`/`decision`. Record consent or no/later before using account tools; verifying an installed plugin is not verifying the selected Gmail account. `plan.mail` shows the saved setup status separately from interview coverage. Connection delays do not block independent resume or search work.

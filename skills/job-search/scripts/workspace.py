@@ -231,6 +231,8 @@ def validate(state, root):
     pipeline.validate(state)
     import provenance
     provenance.validate(state,root)
+    import mail_accounts
+    mail_accounts.validate(state,root)
     return state
 
 def load(root):
@@ -293,6 +295,8 @@ def guard_history(old,new,allow_rebind=False):
     linkedin.guard_history(old,new)
     import routine
     routine.guard_history(old,new)
+    import mail_accounts
+    mail_accounts.guard_run_completion(old,new)
     import onboarding
     onboarding.guard_history(old,new,allow_rebind=allow_rebind)
     for name in ('sources','interviews','decisions','statements'):

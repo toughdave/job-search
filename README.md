@@ -159,6 +159,8 @@ Your answer stays linked to that employer and work period. If the session ends, 
 
 **Daily search:** it also offers a weekday morning routine. You can accept it, change the time or keep searches manual.
 
+**Optional inbox connection:** after confirming your application email, the AI offers to connect Gmail for job-related replies. You sign in to the intended account; the AI checks the connected address before reading. You can choose no or later. [Connection steps](skills/job-search/references/mail.md).
+
 ### 5. Review the first useful result
 
 The AI can prepare useful drafts while the interview continues. Open the documents and check your experience, dates, qualifications and contact details.
@@ -204,6 +206,8 @@ Use your AI's message box after installation:
 Add **Start my search** or **Continue my job search**, then send.
 
 If the skill is missing, say: **“Check whether job-search is installed in this project and help me load it.”**
+
+If a short follow-up seems to ignore your saved progress, summon the skill again and say **“Reopen my project records before continuing.”** Automatic skill selection can vary between sessions.
 
 ## Your weekday morning search
 

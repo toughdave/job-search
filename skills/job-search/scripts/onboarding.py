@@ -20,6 +20,7 @@ def baseline_topics():
         {'id':'linkedin','track_id':None,'kind':'linkedin','title':'Optional LinkedIn review choice','required':True,'dimensions':['decision']},
         {'id':'contact-name','track_id':None,'kind':'profile','title':'Name to use on applications','required':True,'dimensions':['name']},
         {'id':'contact-email','track_id':None,'kind':'profile','title':'Application email address','required':True,'dimensions':['email']},
+        {'id':'mail-choice','track_id':None,'kind':'profile','title':'Optional job-search inbox access for the application email','required':True,'dimensions':['decision']},
         {'id':'contact-phone','track_id':None,'kind':'profile','title':'Application phone number','required':True,'dimensions':['phone']},
         {'id':'credentials','track_id':None,'kind':'profile','title':'Certifications and professional licences','required':True,'dimensions':['certifications']},
         {'id':'relocation','track_id':None,'kind':'profile','title':'Willingness to relocate and any limits','required':True,'dimensions':['relocation']},
@@ -139,7 +140,11 @@ def pointer_path(project,state):
 
 PROJECT_INSTRUCTIONS = '''# Job search project
 
-For job-search work, including short follow-ups such as "ask them to clarify", use the installed job-search skill. Before saying context is missing or asking the person to repeat anything, read `.job-search-project.json`, resolve its `workspace_relative` (or `workspace_path`), verify the workspace ID, and read the saved state and pending question. A short follow-up usually answers that question. Preserve the full received message and use the skill's reply checks. Do not read unrelated personal folders or send messages merely because you are drafting one.
+For job-search work, including short follow-ups such as "ask them to clarify", load the installed job-search skill through the host's skill tool before replying. If that tool is unavailable, read the installed SKILL.md. Reading state alone does not load the workflow.
+
+Before saying context is missing or asking the person to repeat anything, read `.job-search-project.json`, resolve its `workspace_relative` (or `workspace_path`), verify the workspace ID, and read the saved state and pending question. A short follow-up usually answers that question. Preserve the full received message. Save its answer or statement, do the requested work, and run `onboarding.py finish-reply` on the original message and proposed final reply. Deliver only the returned candidate-facing text.
+
+Do not read unrelated personal folders or send messages merely because you are drafting one.
 '''
 
 
@@ -366,11 +371,30 @@ def record_statement(value, project, statement_id, text, expected):
     saved=ws.commit(root,state,expected,'Saved exact volunteered candidate statement')
     return {'statement':record,'revision':saved['revision'],'captured_characters':len(text),'capture_instruction':CAPTURE_INSTRUCTION}
 
+
+def finish_reply(value,project,message_id,message,reply,expected,outgoing_draft_file=None,capture_source_id=None):
+    """Persist the full received turn before checking its response, including format-only requests."""
+    root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
+    ws.require(state['revision']==expected,'Revision conflict: reread before finishing this reply.')
+    ws.require(message.strip(),'The complete received message is required.')
+    if capture_source_id is not None:
+        captured=[a['answer'] for a in state['interviews'] if capture_source_id in a['source_ids']]
+        captured += [s['text'] for s in state.get('statements',[]) if capture_source_id in s['source_ids']]
+        ws.require(message in captured,'Capture source must contain this entire received message, not a summary.')
+    else:
+        result=record_statement(root,project,message_id,message,expected)
+        capture_source_id=result['statement']['source_ids'][0];expected=result['revision']
+    result=check_reply(root,project,reply,expected,outgoing_draft_file)
+    # The recipient sees an ordinary copyable block, not the internal routing label.
+    if outgoing_draft_file is not None:result['send_verbatim']=result['send_verbatim'].replace('```outgoing-draft\n','```\n',1)
+    return {**result,'capture_source_id':capture_source_id,'revision':expected}
+
 def plan(value,project):
     return plan_state(ws.load(value),value,project)
 
 def plan_state(state,value,project):
     check_project(state,project);ob=state['onboarding']
+    import mail_accounts
     facts={x['id']:x for x in state['profile']['facts']}
     current=lambda ids: all(facts[x]['status'] in ('candidate_reported','verified') for x in ids)
     answers={q['onboarding_question_id']:q for q in state['interviews'] if q.get('onboarding_question_id')}
@@ -387,6 +411,13 @@ def plan_state(state,value,project):
         choice=dispositions.get(topic['id']);disposition=choice['status'] if choice else None
         if disposition=='reopen':disposition=None
         status=disposition or ('answered' if not missing else 'partial' if covered else 'unanswered')
+        if topic['id']=='mail-choice' and state['integrations'].get('mail'):
+            mail=state['integrations']['mail']
+            if mail_accounts.plan(state)['status']=='email_changed':
+                status='unanswered';missing=['decision'];disposition=None
+            else:
+                status={'enabled':'answered','declined':'declined','deferred':'deferred'}[mail['choice']]
+                missing=[];disposition=mail['choice'] if mail['choice']!='enabled' else None
         pending=[];unmapped=[]
         for q in ob['questions']:
             if q['id'] in replaced_questions:continue
@@ -409,6 +440,7 @@ def plan_state(state,value,project):
     import formatting
     import provenance
     ledger=provenance.plan(state,ws.checked_root(value))
+    import mail_accounts
     return {'workspace_id':state['workspace_id'],'revision':state['revision'],'project_root':ob['project_root'],
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
         'pending_application_questions':[q for q in ob['questions'] if q.get('application_id') and q['id'] not in answers and q['id'] not in replaced_questions],
@@ -418,20 +450,23 @@ def plan_state(state,value,project):
         'document_formats':formatting.plan(state),
         'provenance':ledger,
         'missing_baseline_topics':missing_baseline,
+        'mail':mail_accounts.plan(state),
         'ready_to_close_interview':bool(active and has_examples and required and ob['resume']['status'] in ('read','no_resume') and not unresolved and history['ready'] and not missing_baseline and ledger['ready']),
         'unresolved_required_topics':unresolved,
-        'reply_check':'Before every interview reply, including after a fact-heavy statement or when no question is saved, run check-reply on the actual proposed reply. Save one ask first if candidate input is needed; never send a list of missing topics.',
+        'reply_check':'Finish every reply with finish-reply using the full original message and actual proposed reply. Save one ask first if candidate input is needed. Deliver only the returned send_verbatim text, without a tool acknowledgement or preface.',
         'instruction':'Review all existing facts and exact answers for each missing dimension before asking. Map supported answers into evidence; do not repeat an answered question. Checked is derived, never an input.'}
 
 def main():
     ws.configure_output()
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
-    for command in ('bind','plan','rebind','ask','save-answer','record-statement','check-reply'):
+    for command in ('bind','plan','rebind','ask','save-answer','record-statement','check-reply','finish-reply'):
         p=sub.add_parser(command);p.add_argument('--workspace',required=True);p.add_argument('--project',required=True)
-        if command in ('rebind','ask','save-answer','record-statement','check-reply'):p.add_argument('--expected-revision',type=int,required=True)
-        if command=='check-reply':
+        if command in ('rebind','ask','save-answer','record-statement','check-reply','finish-reply'):p.add_argument('--expected-revision',type=int,required=True)
+        if command in ('check-reply','finish-reply'):
             p.add_argument('--reply-file',required=True,help='Full proposed candidate-facing reply, not only its question')
             p.add_argument('--outgoing-draft-file',help='Workspace-relative text file included once in an outgoing-draft fenced block')
+        if command=='finish-reply':
+            p.add_argument('--message-id',required=True);p.add_argument('--message-file',required=True);p.add_argument('--capture-source-id')
         if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
         if command=='ask':
             p.add_argument('--topic');p.add_argument('--dimension');p.add_argument('--application');p.add_argument('--kind',choices=('application','next-stage'));p.add_argument('--question',required=True)
@@ -445,6 +480,7 @@ def main():
         if args.command=='bind':result=bind(args.workspace,args.project)
         elif args.command=='plan':result=plan(args.workspace,args.project)
         elif args.command=='check-reply':result=check_reply(args.workspace,args.project,Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision,args.outgoing_draft_file)
+        elif args.command=='finish-reply':result=finish_reply(args.workspace,args.project,args.message_id,Path(args.message_file).read_text(encoding='utf-8-sig'),Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision,args.outgoing_draft_file,args.capture_source_id)
         elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
         elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision,args.application,args.kind,args.replace_question,args.reason)
         elif args.command=='record-statement':result=record_statement(args.workspace,args.project,args.statement_id,Path(args.text_file).read_text(encoding='utf-8-sig'),args.expected_revision)

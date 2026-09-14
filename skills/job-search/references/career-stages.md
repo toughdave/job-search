@@ -67,7 +67,7 @@ Correct the sentence itself. “That was outside the role's scope (only this dut
 A flagged employer requirement can be retained as an exact quoted excerpt and source ID on a line beginning `Employer requirement:`, `Employer posting:` or `Employer message:`. The matching source must be `employer` or `official`. This preserves useful role context while preventing that quote from being used as a candidate answer. Ordinary references to similar job roles are not system-comparison claims.
 
 
-For a stage question, use the [application question route](onboarding.md#application-questions), then run `check-reply` last. A phrase scan does not replace the persisted question/reply check.
+For a stage question, use the [application question route](onboarding.md#application-questions), then run `finish-reply` last with the complete original message. Deliver only its returned `send_verbatim` text. A phrase scan does not replace the persisted question/reply check.
 
 The calendar check covers explicit English weekday/date pairs such as `Thursday, September 18, 2026`, `Thu Sept 18 2026` and `Tue, 22 Sep 2026`. It refuses a wrong weekday or impossible full date, including in questions and source quotations. A missing year produces `review_notes` and `review_required` in the stage review, but does not prevent saving a draft. Resolve the year from the invitation or ask if necessary; never guess it. Numeric-only dates, other languages, timezones and whether the invitation itself is accurate still need direct review. If an old pending question contains a mistake, use the [question correction route](onboarding.md#correcting-a-pending-question).
 
