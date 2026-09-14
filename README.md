@@ -186,7 +186,7 @@ Your answer stays linked to that employer and work period. If the session ends, 
 
 **Optional inbox access:** if you connected Gmail in step 1, the AI verifies that existing connection after confirming your application email and read permission. If you skipped it, you can connect later or continue without inbox access. [Connection steps](skills/job-search/references/mail.md).
 
-The interview stays brief: one useful question at a time, with a short explanation only when needed. At the first setup handoff, the AI gives you the exact way to return in **your app**, your saved-records location and the next action. It does not make you read instructions for every app.
+The interview stays brief: one useful question at a time, with a short explanation only when needed. When you stop, ask how to return, or reach the first setup handoff, the AI saves a short return note and gives you the exact way to return in **your app**, your project/records location and the next action. You can stop before the interview is complete. It does not make you read instructions for every app.
 
 ### 5. Review the first useful result
 

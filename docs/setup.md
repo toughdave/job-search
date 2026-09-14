@@ -166,7 +166,7 @@ It also checks your name, email, phone, city/region, relocation preferences, edu
 
 You can also save common application answers during setup or when a form needs them: work authorization, sponsorship, start dates, salary expectations, working arrangements and relevant screening questions. The AI remembers each answer's scope and date, checks the actual form wording, and asks again only when something material differs. Employer-specific questions wait for that employer; sensitive disclosures remain optional. Your private answers are never included in the shared skill.
 
-The interview stays brief: one useful question at a time, with a short explanation only when needed. At the first setup handoff, the AI gives you the exact way to return in **your app**, your saved-records location and the next action. It does not make you read instructions for every app.
+The interview stays brief: one useful question at a time, with a short explanation only when needed. When you stop, ask how to return, or reach the first setup handoff, the AI saves a short return note and gives you the exact way to return in **your app**, your project/records location and the next action. You can stop before the interview is complete. It does not make you read instructions for every app.
 
 ### 5. Review the first useful result
 

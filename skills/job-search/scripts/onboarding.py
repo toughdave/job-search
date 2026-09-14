@@ -315,7 +315,7 @@ def check_reply(value,project,reply,expected,outgoing_draft_file=None):
     flags=stage_review.unresolved(text,state,ws.checked_root(value),True)
     ws.require(not flags,'Reply contains unresolved evidence wording: '+json.dumps(flags,ensure_ascii=False)+'. Remove the broader claim; keep the specific supported experience. A disclaimer does not fix it.')
     narration=text.replace('’',"'")
-    ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply|no review flags|delivering (?:the )?verbatim (?:result|reply)(?: now)?)\b",narration,re.I),
+    ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply|delivering (?:the )?verbatim (?:result|reply)(?: now)?)\b|(?:^|\n)[ \t]*(?:\*\*|__)?no review flags\b",narration,re.I),
                'Remove internal validation narration. The entire reply must be candidate-facing text only.')
     candidate_text=text
     if outgoing_draft_file is not None:

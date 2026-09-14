@@ -3,13 +3,23 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.18.0"
+  version: "1.18.1"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
 # Job Search
 
 You operate the files and workflow; the candidate supplies experience and decisions. Speak plainly, ask one question at a time, and do useful work as soon as enough evidence is available. Never make the person edit JSON, arrange internal folders or install a second skill. During setup and interview, normally use one brief context sentence and one question, then wait. Skip technical narration and repeated summaries; give more detail only for a decision, a real blocker or a request for explanation.
+
+## When the person stops or asks how to return
+
+This applies even halfway through setup. Save their entire original message through the usual capture flow, including the stopping request; do not paraphrase or drop small words before saving.
+
+- Write `notes/how-to-return.md` in the verified records workspace. Include the actual app/provider, project and records paths, return action and unfinished next step. Save a concrete `session.next_action`; do not leave a reconciliation placeholder or claim unfinished fact mapping is complete.
+- The **chat reply itself** must show the actual project path, actual records path and this app's exact summon action. Merely saying “this project” or putting paths only in the note is insufficient. Use a short paragraph with inline file links if a pending question rules out a list; otherwise a compact three-line handoff is enough.
+- Use Claude Code `/job-search Continue my job search.`; Codex CLI/IDE `$job-search Continue my job search.`; Codex desktop its observed `@`/`$` picker; T3 its observed `$` picker; OpenCode `Use job-search to continue my job search.` If native discovery is unverified, say so and provide the direct-file fallback from [harnesses](references/harnesses.md#loading-and-refresh).
+
+Preserve an existing pending question without starting another interview question when the person is leaving. End with the saved next step, and pass the complete handoff through `finish-reply`. Also provide this handoff at the first useful setup result; do not repeat it after every answer.
 
 ## Every turn: capture, act, verify, reply
 

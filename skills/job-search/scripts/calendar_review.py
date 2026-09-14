@@ -18,7 +18,7 @@ def scan(text):
         if match['weekday'] in ('sat','wed','sun','mon'):continue
         # Uppercase SAT can name the exam. Require a score immediately after
         # its date; nearby unrelated exam wording must not hide a real weekday.
-        sat_exam=match['weekday']=='SAT' and bool(re.match(r'\s*[,;:\-]?\s*score\s*:?\s*\d{3,4}\b',text[match.end():],re.I))
+        sat_exam=match['weekday']=='SAT' and bool(re.match(r'[ \t]*(?:[,;:\-–—][ \t]*)?(?:\([ \t]*)?score(?:d)?[ \t]*:?[ \t]*\d{3,4}\b',text[match.end():],re.I))
         item={'line':text.count('\n',0,match.start())+1,'text':match.group()}
         if not match['year']:
             if sat_exam:continue
