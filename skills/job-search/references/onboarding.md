@@ -152,7 +152,35 @@ For several resume versions, follow [provenance](provenance.md): preserve each o
 
 ## Original-message capture
 
+Binding also creates small `AGENTS.md` and `CLAUDE.md` startup notes in the private project when those files do not already exist. They direct new host sessions to the installed skill and project pointer before asking for missing context. Existing files are never overwritten. If bind reports an existing file without a pointer reminder, read its instructions and add an appropriate reminder while preserving the person's content. If the host does not load project instructions, explicitly summon the skill. Re-running `bind` on the same project adds missing startup notes without resetting the interview.
+
 The opening invocation and request belong to the exact message too. If the original starts “Use job-search. Please correct the last records,” those words must appear in the saved answer/statement. Copy from the original user turn rather than skill arguments, compare its opening and closing sentences, then verify the complete returned text before extracting facts. If the host exposes only a summary, report incomplete capture instead of calling it exact.
+
+## Outgoing drafts
+
+An email drafted for an employer may need questions, such as “Could you let me know which day you intended?” Preserve that request when the candidate asks for clarification. The candidate interview's pacing rule applies to questions addressed to the candidate, not to the recipient of the draft.
+
+Save one outgoing message as a UTF-8 `.txt` or `.md` file inside this workspace, then include its exact contents once in the proposed reply, inside a fenced block labelled `outgoing-draft`:
+
+````text
+Draft for the recruiter, not sent:
+
+```outgoing-draft
+Hello,
+Could you let me know which day you intended for the call?
+Thank you.
+```
+````
+
+Run the final check with the additional workspace-relative file path:
+
+```sh
+python S/scripts/onboarding.py check-reply --workspace W --project P --reply-file W/scratch/reply.txt --outgoing-draft-file scratch/recruiter-reply.txt --expected-revision N
+```
+
+The checker requires one matching block and exact draft text (ignoring terminal newlines in the source file). It excludes only that block from candidate-request detection. Dates and evidence wording are checked across the entire reply, including the draft. Extra candidate questions outside the block still fail; any saved pending question must appear once at the very end, outside the block. A missing, duplicated, changed or nested-fence draft is refused. Without the flag there is no exemption.
+
+Use this route only for a message the person asked you to draft for someone else. Do not move candidate interview questions into the block to evade pacing. Multiple outgoing messages can be separate saved files; include at most one in each checked reply and link the others. Inspect the meaning and recipient yourself: the checker cannot establish whom a sentence addresses or whether the candidate requested it. Return `send_verbatim` unchanged. No email, message or calendar action is authorized by this check.
 
 
 ## Application questions

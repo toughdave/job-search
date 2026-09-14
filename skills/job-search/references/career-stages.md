@@ -50,6 +50,8 @@ Flags can also appear in questions, quoted evidence or supported statements; rec
 
 Offer calendar holds and reminders after saving the verified logistics. Create or change events only with the candidate's authorization for that account and action. Clearly label tentative holds, preserve the source timezone, verify the returned event, and save its ID/link locally. A proposed time in an email is not an accepted invitation. Update/cancel only the matching authorized event; do not touch unrelated calendars.
 
+If the employer's invitation itself gives conflicting dates, preserve it as a source and keep the intended date unresolved; a weekday calculation cannot tell you which date the employer meant. Prepare a clarification draft when requested, using the [outgoing draft boundary](onboarding.md#outgoing-drafts) so its questions survive the reply check. Do not describe an appointment as easily rescheduled or promise employer flexibility without supporting information.
+
 ## Debrief
 
 After a round, save the candidate's actual recollection, exact questions and actual answers separately from improved practice answers. For each important answer, assess correctness, coverage, specificity and impact; say “incomplete” when warranted. Give one corrected answer and one concrete practice action. Preserve uncertainty where recollection is approximate. Employer feedback may explain an outcome; your own interpretation must be labelled as interpretation, never reported as the hiring reason.
@@ -69,6 +71,10 @@ For a stage question, use the [application question route](onboarding.md#applica
 
 The calendar check covers explicit English weekday/date pairs such as `Thursday, September 18, 2026`, `Thu Sept 18 2026` and `Tue, 22 Sep 2026`. It refuses a wrong weekday or impossible full date, including in questions and source quotations. A missing year produces `review_notes` and `review_required` in the stage review, but does not prevent saving a draft. Resolve the year from the invitation or ask if necessary; never guess it. Numeric-only dates, other languages, timezones and whether the invitation itself is accurate still need direct review. If an old pending question contains a mistake, use the [question correction route](onboarding.md#correcting-a-pending-question).
 
+The matcher also recognizes parentheses, “Thursday the 18th of September 2026”, and a comma without a following space. Lowercase short forms `sat`, `wed`, `sun` and `mon` are not treated as weekdays because they can be ordinary words; capitalized abbreviations and full weekday names remain checked. A clear scan is not proof that all date expressions were interpreted.
+
 An explicitly labelled employer requirement may describe adaptability, fast learning or similar software without attributing those traits to the candidate. A line mixing that requirement with a candidate self-claim remains subject to review. Candidate claims such as “I quickly adapted to the new phone system after training” are flagged for evidence review; a specific action such as adapting a booking plan remains allowed.
+
+On an `Employer requirement:` line, `we` and `our` may be the employer's voice. They do not cancel that exemption; `I`, `my` or `candidate` still do. Keep employer requirements separate from candidate experience rather than relying on labels to disguise a self-claim.
 
 The adaptability rule targets generic traits such as “I adapt easily”, not concrete actions such as adapting a booking plan. Labelled predictions and standalone practice questions remain allowed. An `Employer requirement:` line describing similar software is role context, provided it contains no candidate self-claim. A source ID alone is not a blanket exemption for new unsupported wording.

@@ -117,6 +117,8 @@ The terminal command below copies the skill. Summoning it afterward starts these
 
 The AI should check the installation, read your resume, and ask one useful question at a time. Your answers and documents usually go in a private **records** folder inside your project. Large software packages stay in a separate local cache. The AI tells you where it saved your search. If it needs an installation approval, a writable location, or a restart, follow that specific instruction before continuing.
 
+Setup also leaves small project startup notes so Codex and Claude can find your saved conversation context when you return with a short answer. Keep those notes with the project. Existing project instructions are preserved. If your app still asks for context that you already provided, summon `job-search` again in the same project rather than starting over.
+
 For example, after reading your resume it might ask:
 
 > **AI:** What kind of work would you most like to do next?

@@ -137,12 +137,31 @@ def pointer_path(project,state):
         ws.require(existing.get('format')=='job-search-project' and existing.get('workspace_id')==state['workspace_id'],'Project already points to a different workspace; no pointer overwritten.')
     return path
 
+PROJECT_INSTRUCTIONS = '''# Job search project
+
+For job-search work, including short follow-ups such as "ask them to clarify", use the installed job-search skill. Before saying context is missing or asking the person to repeat anything, read `.job-search-project.json`, resolve its `workspace_relative` (or `workspace_path`), verify the workspace ID, and read the saved state and pending question. A short follow-up usually answers that question. Preserve the full received message and use the skill's reply checks. Do not read unrelated personal folders or send messages merely because you are drafting one.
+'''
+
+
+def ensure_project_instructions(project):
+    for name in ('AGENTS.md','CLAUDE.md'):
+        path=ws.inside(project,name)
+        try:
+            with path.open('x',encoding='utf-8',newline='\n') as f:f.write(PROJECT_INSTRUCTIONS)
+        except FileExistsError:
+            try:
+                if path.is_file() and '.job-search-project.json' in path.read_text(encoding='utf-8-sig'):continue
+            except UnicodeError:pass
+            print('Project startup note not added to existing '+name+'. Preserve that file; review it and add a job-search pointer reminder if appropriate.',file=sys.stderr)
+
+
 def write_pointer(root,project,state):
     path=pointer_path(project,state)
     relative=root.relative_to(project).as_posix() if root.is_relative_to(project) else None
     ws.atomic_json(path,{'format':'job-search-project','workspace_id':state['workspace_id'],
         'workspace_path':str(root),'workspace_relative':relative,
         'instruction':'Read this workspace from disk; verify its workspace ID. If the project moved, ask for the new binding before continuing.'})
+    ensure_project_instructions(project)
 
 def bind(value,project_value):
     root=ws.checked_root(value);project=ws.checked_root(project_value)
@@ -277,7 +296,7 @@ def save_answer(value,project,question_id,answer,interpretation,expected):
 CAPTURE_INSTRUCTION = 'Compare the saved text and character count with the ENTIRE received message, including requests, pasted postings and extra details. Additional employer-source copies do not replace the original message. This helper cannot see text omitted by the caller.'
 
 
-def check_reply(value,project,reply,expected):
+def check_reply(value,project,reply,expected,outgoing_draft_file=None):
     """Read-only check of the actual proposed interview reply, not a question summary."""
     state=ws.load(value);check_project(state,project)
     ws.require(state['revision']==expected,'Revision conflict: recheck the reply against current state.')
@@ -293,13 +312,24 @@ def check_reply(value,project,reply,expected):
     narration=text.replace('’',"'")
     ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply)\b",narration,re.I),
                'Remove internal validation narration. The entire reply must be candidate-facing text only.')
-    summary=text
+    candidate_text=text
+    if outgoing_draft_file is not None:
+        path=ws.inside(ws.checked_root(value),outgoing_draft_file)
+        ws.require(path.suffix.lower() in ('.md','.txt'),'Outgoing draft must be a workspace Markdown or text file.')
+        draft=path.read_text(encoding='utf-8-sig').rstrip('\n')
+        ws.require(draft.strip() and not re.search(r'^\s*`{3,}',draft,re.M),'Outgoing draft must be nonempty plain text without nested fences.')
+        block='```outgoing-draft\n'+draft+'\n```'
+        matches=list(re.finditer(r'^'+re.escape(block)+r'(?=\n|$)',text,re.M))
+        ws.require(len(matches)==1 and text.count(draft)==1 and len(re.findall(r'^```outgoing-draft\s*$',text,re.M))==1,
+                   'Include the exact outgoing draft once, in one ```outgoing-draft fenced block; keep candidate questions outside it.')
+        match=matches[0];candidate_text=(text[:match.start()]+text[match.end():]).strip()
+    summary=candidate_text
     if pending:
         question=pending[0]['question'].strip()
         wrappers=(('**','**'),('__','__'),('*','*'),('_','_'),('"','"'),("'","'"),('“','”'),('‘','’'),('',''))
         ending=next((left+question+right for left,right in wrappers if text.endswith(left+question+right)),None)
-        ws.require(ending is not None and text.count(question)==1,'End the reply with the exact saved pending question, once. Surrounding emphasis or quotes are allowed; other wording must not change.')
-        summary=text[:-len(ending)]
+        ws.require(ending is not None and candidate_text.endswith(ending) and candidate_text.count(question)==1,'End the reply with the exact saved pending question outside any outgoing draft, once. Surrounding emphasis or quotes are allowed; other wording must not change.')
+        summary=candidate_text[:-len(ending)]
         if not pending[0].get('application_id'):
             ws.require(not re.search(r'^\s*(?:\d+[.)]|[-*])\s+',summary,re.M),'Keep this interview reply to a short summary and the one saved question, without a checklist.')
     # WH-led declarative headings ("What I saved") are not requests without a question mark.
@@ -399,7 +429,9 @@ def main():
     for command in ('bind','plan','rebind','ask','save-answer','record-statement','check-reply'):
         p=sub.add_parser(command);p.add_argument('--workspace',required=True);p.add_argument('--project',required=True)
         if command in ('rebind','ask','save-answer','record-statement','check-reply'):p.add_argument('--expected-revision',type=int,required=True)
-        if command=='check-reply':p.add_argument('--reply-file',required=True,help='Full proposed candidate-facing reply, not only its question')
+        if command=='check-reply':
+            p.add_argument('--reply-file',required=True,help='Full proposed candidate-facing reply, not only its question')
+            p.add_argument('--outgoing-draft-file',help='Workspace-relative text file included once in an outgoing-draft fenced block')
         if command=='rebind':p.add_argument('--decision-source',required=True);p.add_argument('--workspace-id',required=True)
         if command=='ask':
             p.add_argument('--topic');p.add_argument('--dimension');p.add_argument('--application');p.add_argument('--kind',choices=('application','next-stage'));p.add_argument('--question',required=True)
@@ -412,7 +444,7 @@ def main():
     try:
         if args.command=='bind':result=bind(args.workspace,args.project)
         elif args.command=='plan':result=plan(args.workspace,args.project)
-        elif args.command=='check-reply':result=check_reply(args.workspace,args.project,Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision)
+        elif args.command=='check-reply':result=check_reply(args.workspace,args.project,Path(args.reply_file).read_text(encoding='utf-8-sig'),args.expected_revision,args.outgoing_draft_file)
         elif args.command=='rebind':result=rebind(args.workspace,args.project,args.decision_source,args.expected_revision,args.workspace_id)
         elif args.command=='ask':result=ask(args.workspace,args.project,args.topic,args.dimension,args.question,args.expected_revision,args.application,args.kind,args.replace_question,args.reason)
         elif args.command=='record-statement':result=record_statement(args.workspace,args.project,args.statement_id,Path(args.text_file).read_text(encoding='utf-8-sig'),args.expected_revision)

@@ -23,7 +23,7 @@ def scan(text,has_submission=False):
         qtext=re.sub(r'^\s*(?:[-*]\s+|\d+[.)]\s+)','',normalized).strip().strip('*_\"“” ')
         question=bool(re.match(r'^(?:how|what|why|when|where|which|who|do|does|did|can|could|would|will|are|is|have|has|tell me|describe|explain)\b',qtext,re.I)) and qtext.endswith('?') and not re.search(r'[.?!]',qtext[:-1])
         for kind,pattern in PATTERNS.items():
-            employer_requirement=kind in ('system_similarity','adaptability','learning_speed') and re.match(r'^\s*Employer requirement\s*:',normalized,re.I) and not re.search(r"\b(?:I|my|we|our|candidate)\b",normalized,re.I)
+            employer_requirement=kind in ('system_similarity','adaptability','learning_speed') and re.match(r'^\s*Employer requirement\s*:',normalized,re.I) and not re.search(r"\b(?:I|my|candidate)\b",normalized,re.I)
             if employer_requirement:continue
             if not question and re.search(pattern,normalized,re.I):flags.append({'line':number,'kind':kind,'text':line})
         if not has_submission and re.search(r'\bsubmitted\s+(?:resume|cv|letter|materials)\b',normalized,re.I):

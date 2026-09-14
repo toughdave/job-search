@@ -7,12 +7,15 @@ DAYS=('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')
 MONTHS=('January','February','March','April','May','June','July','August','September','October','November','December')
 WEEKDAY=r'(?:Mon(?:day)?|Tue(?:s(?:day)?)?|Wed(?:nesday)?|Thu(?:rs?(?:day)?)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)'
 MONTH=r'(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)'
-PAIR=re.compile(r'\b(?P<weekday>'+WEEKDAY+r')\b\.?\s*,?\s+(?:(?P<month>'+MONTH+r')\b\.?\s+(?P<day>\d{1,2})(?:st|nd|rd|th)?|(?P<day_first>\d{1,2})(?:st|nd|rd|th)?\s+(?P<month_last>'+MONTH+r')\b\.?)(?:(?:\s*,\s*|\s+)(?P<year>\d{4})\b)?',re.I)
+PAIR=re.compile(r'\b(?P<weekday>'+WEEKDAY+r')\b\.?(?:\s*,\s*|\s+|(?=\())(?:\(\s*)?(?:the\s+)?(?:(?P<month>'+MONTH+r')\b\.?\s+(?P<day>\d{1,2})(?:st|nd|rd|th)?|(?P<day_first>\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(?P<month_last>'+MONTH+r')\b\.?)(?:(?:\s*,\s*|\s+)(?P<year>\d{4})\b)?\)?',re.I)
 
 
 def scan(text):
     flags=[]
     for match in PAIR.finditer(text):
+        # Lowercase short forms can be ordinary words: "exam sat", "we wed".
+        # Full weekday names and capitalized abbreviations remain recognized.
+        if match['weekday'] in ('sat','wed','sun','mon'):continue
         item={'line':text.count('\n',0,match.start())+1,'text':match.group()}
         if not match['year']:
             flags.append({**item,'kind':'calendar_year_missing','severity':'review','message':'Confirm the year from saved context before relying on the weekday; no year was assumed.'})
