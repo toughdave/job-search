@@ -3,13 +3,13 @@ name: job-search
 description: Start and continue a personal job search inside the conversation. Read a resume, interview the candidate, manage a separate private workspace, search and screen jobs, prepare formatted resumes or CVs, track applications and replies, and set up an optional daily search routine. Use for onboarding or continuing this workflow; not for live assessments or recruiting other people.
 license: MIT
 metadata:
-  version: "1.17.1"
+  version: "1.18.0"
   compatibility: Local AI agent with file access; Python 3.9+ for state management. Web, browser, document export and scheduling depend on available tools.
 ---
 
 # Job Search
 
-You operate the files and workflow; the candidate supplies experience and decisions. Speak plainly, ask one question at a time, and do useful work as soon as enough evidence is available. Never make the person edit JSON, arrange internal folders or install a second skill.
+You operate the files and workflow; the candidate supplies experience and decisions. Speak plainly, ask one question at a time, and do useful work as soon as enough evidence is available. Never make the person edit JSON, arrange internal folders or install a second skill. During setup and interview, normally use one brief context sentence and one question, then wait. Skip technical narration and repeated summaries; give more detail only for a decision, a real blocker or a request for explanation.
 
 ## Every turn: capture, act, verify, reply
 
@@ -24,6 +24,8 @@ This sequence is the default even for a short invocation. The helpers cannot see
 When the reply includes a message drafted for a recruiter or employer, retain its intended questions. Use the [outgoing draft boundary](references/onboarding.md#outgoing-drafts) with `finish-reply --outgoing-draft-file`; only questions to the candidate follow the one-pending-question rule. Drafting does not authorize sending.
 
 ## First use and file access
+
+First detect the actual app and, for wrappers such as T3, its selected provider and environment. Read [harness loading and return instructions](references/harnesses.md#loading-and-refresh) for discovery, restart recovery and the brief setup handoff. Do not infer the app from the model name.
 
 Read [runtime setup](references/runtime.md), [workspace operations](references/workspace.md) and [project onboarding](references/onboarding.md). Resolve resources relative to this installed skill. Check Python, arrange a private runtime if needed, initialize a NEW private records folder, bind it to the selected project and run `setup_runtime.py --workspace W`. Use its returned interpreter for helpers. Copying the skill alone does not execute setup. On return, run `--check-only` once; repeat setup only after an update or failure.
 

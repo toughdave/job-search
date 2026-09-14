@@ -1,6 +1,6 @@
 # Detailed setup guide
 
-Your job search, guided through a conversation in **Codex or Claude Code**. You supply your experience and decisions. The AI organizes the files, asks questions, and prepares applications for your review.
+Your job search, guided through a conversation in **Codex, Claude Code, OpenCode or T3 Code**. You supply your experience and decisions. The AI organizes the files, asks questions, and prepares applications for your review.
 
 **[First time: start here](#first-time-step-by-step)** · **[Summon the skill](#summon-the-skill)** · **[Coming back later](#coming-back-later)** · **[Daily search](#your-weekday-morning-search)** · **[Need help?](#if-something-stops-you)**
 
@@ -10,7 +10,7 @@ Your job search, guided through a conversation in **Codex or Claude Code**. You 
 
 ### Prerequisites and dependencies
 
-Use a signed-in Codex or Claude Code session with a local project folder, file read/write permission and internet access. Bring your resume if you have one; starting without a resume is supported. The AI runs the setup steps for you.
+Use a signed-in local agent session with a local project folder, file read/write permission and internet access. Bring your resume if you have one; starting without a resume is supported. The AI runs the setup steps for you.
 
 | Tool | Purpose | Who handles it |
 | --- | --- | --- |
@@ -22,7 +22,9 @@ Use a signed-in Codex or Claude Code session with a local project folder, file r
 
 Software packages stay in a local cache outside your records. The [runtime instructions](../skills/job-search/references/runtime.md) cover checks, setup, repair and cleanup. If downloads or a required viewing tool are unavailable, the interview can continue with supported local saves, but affected document uploads remain pending. An ordinary browser chat cannot gain local file access simply by receiving this skill.
 
-### 1. Open Codex or Claude Code
+<a name="1-open-codex-or-claude-code"></a>
+
+### 1. Open your AI app
 
 **Need the desktop app? Choose your computer below.** These official pages let you select and download the app before returning here.
 
@@ -30,6 +32,8 @@ Software packages stay in a local cache outside your records. The [runtime instr
 | --- | --- | --- |
 | Codex | [Mac download page (Apple Silicon)](https://learn.chatgpt.com/docs/app) | [Windows download page](https://learn.chatgpt.com/docs/windows/windows-app#download-the-chatgpt-desktop-app) |
 | Claude Code | [Claude downloads: choose macOS](https://claude.com/download) | [Claude downloads: choose Windows or Windows ARM64](https://claude.com/download) |
+
+**Already using OpenCode or T3 Code?** Use your existing app. Select the job-search folder and an agent that can edit files and run local commands. In T3, also select and authenticate its underlying provider; T3 uses that provider's installed skill. Downloads: [OpenCode](https://opencode.ai/download), [T3 Code](https://github.com/pingdotgg/t3code/releases). You can use the same start message below.
 
 Open a link in a new tab with **Ctrl+click** on Windows or **Command+click** on Mac, or right-click and choose **Open link in new tab**. This README uses explicit computer choices rather than trying to detect your operating system.
 
@@ -101,6 +105,8 @@ During setup, the skill confirms your application email and whether it may read 
 
 **Also optional: Google Calendar.** If you want help adding interview events, connect **Google Calendar** through the same app menus now. The skill will verify your calendar choice and obtain permission before creating or changing events. This is separate from Gmail access.
 
+**OpenCode / T3:** use only connections available to the selected agent or provider. A Gmail connection in another desktop app does not automatically carry over. Skip this step if no supported connection is available; the AI can work from replies you paste.
+
 Sources: [Codex plugins](https://learn.chatgpt.com/docs/plugins), [Claude Code connectors](https://code.claude.com/docs/en/desktop#extend-claude-code). More detail: [Inbox workflow](../skills/job-search/references/mail.md).
 
 **Nothing else needs manual installation before the start message.** The AI checks Python and document tools during setup. It checks browser tools when online work needs them. If your resume is only in Google Drive, downloading a copy to attach is enough; a Drive connection is optional. Employer-portal sign-in happens when you apply, and scheduled searches are configured after the interview establishes your targets and timing.
@@ -160,6 +166,8 @@ It also checks your name, email, phone, city/region, relocation preferences, edu
 
 You can also save common application answers during setup or when a form needs them: work authorization, sponsorship, start dates, salary expectations, working arrangements and relevant screening questions. The AI remembers each answer's scope and date, checks the actual form wording, and asks again only when something material differs. Employer-specific questions wait for that employer; sensitive disclosures remain optional. Your private answers are never included in the shared skill.
 
+The interview stays brief: one useful question at a time, with a short explanation only when needed. At the first setup handoff, the AI gives you the exact way to return in **your app**, your saved-records location and the next action. It does not make you read instructions for every app.
+
 ### 5. Review the first useful result
 
 After reviewing your experience and target destination, the AI recommends one or two pages and asks for your approval. A longer CV needs a relevant reason. It saves your choice and checks the actual pages for readable spacing and useful detail before presenting a draft.
@@ -185,12 +193,33 @@ Once installed, open the **same local project**. Use the message box in your AI 
 | Codex / ChatGPT desktop | Type `@`, then select **job-search** from the skill picker. If your Codex composer offers a `$` skill picker, select **job-search** there. |
 | Codex CLI or IDE extension | Type `$job-search`, select the matching skill if a menu appears, then add your request. |
 | Claude Code | Type `/job-search`, select the matching skill if a menu appears, then add your request. |
+| OpenCode | Send `Use job-search to continue my job search.` Use `/job-search` only if your version lists it. |
+| T3 Code | Type `$`, select **job-search** for the selected provider, then add your request. The `/` menu may list it too. |
 
 After selecting the skill, add **Start my search** or **Continue my job search**, then send. For a first search, supply your resume or its location if you have not already done so. Sources: [OpenAI skill invocation](https://learn.chatgpt.com/docs/build-skills#how-chatgpt-and-codex-use-skills), [Claude Code skills](https://code.claude.com/docs/en/skills).
 
 **No matching skill in the picker?** Send `Use job-search.` If it cannot find the installation, use [Need help?](#if-something-stops-you). A shortcut works only after the app has loaded the installed skill; it does not install it.
 
-If you installed it during the current conversation, start a new conversation in the same project and try the shortcut again. The AI should check the actual installed files if it is still unavailable.
+### New chat or restart?
+
+**Continue in the current conversation when the AI can load the installed skill and its tools.** Installation alone does not run setup. The AI reads the installed instructions and starts the interview; native shortcut discovery is a separate check.
+
+| App | When to start again |
+| --- | --- |
+| Codex | Detects skill changes automatically. If it does not appear, restart Codex and reopen the same project. |
+| Claude Code | Watches existing skill directories during a session. If installation created a top-level skills directory that did not exist when the session began, restart Claude Code. |
+| OpenCode | Try loading the skill in this session. If unavailable, start a new session in the same folder; restart the app/server only if its catalog remains stale. Versions differ. |
+| T3 Code | Check the selected project, environment and provider first. If the skill is missing, start a new task there; if the provider still has stale discovery, restart that provider/app as instructed. |
+
+**New chat** means another conversation in the same project. **Restart** means closing and reopening the affected app or provider session. Neither means deleting records, reinstalling repeatedly or answering the interview again. The AI gives one specific recovery action only when needed; it can read the installed file directly while native discovery catches up, without claiming the shortcut is verified.
+
+Sources: [Codex loading](https://learn.chatgpt.com/docs/build-skills), [Claude live skill updates](https://code.claude.com/docs/en/skills#edit-a-skill), [OpenCode skills](https://opencode.ai/docs/skills/), [T3 commands and skills](https://github.com/pingdotgg/t3code/blob/main/docs/user/composer.md#commands-and-skills).
+
+### Other apps and available tools
+
+OpenCode discovers project skills in `.opencode/skills` and compatible `.agents/skills` or `.claude/skills` folders. T3 loads skills through the provider selected for that project. Changing provider or remote environment can change which skills, files, models and connections are available; reopen the same saved project and let the AI verify them.
+
+The core interview and file workflow can run where those capabilities exist. Browser control, page-image viewing, Gmail and scheduling must be checked separately. The current routine helper verifies native schedules only for Codex desktop and Claude desktop; OpenCode and T3 use the saved prompt manually unless a separately supported scheduling integration is verified. Do not treat an installed package as proof that every stage works in every wrapper.
 
 <a name="coming-back-later"></a>
 

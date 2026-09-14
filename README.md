@@ -1,6 +1,6 @@
 # Job Search
 
-A guided job search in **Codex or Claude Code**. You answer questions and review applications; the AI organizes your records and prepares the documents.
+A guided job search in **Codex, Claude Code, OpenCode or T3 Code**. You answer questions and review applications; the AI organizes your records and prepares the documents.
 
 [Start here](#first-time-step-by-step) · [Use it again](#coming-back-later) · [Daily search](#your-weekday-morning-search) · [Help](#if-something-stops-you)
 
@@ -25,7 +25,7 @@ flowchart TD
 
 ### What you need before starting
 
-- **An AI app and account:** Codex or Claude Code with access to local projects and files. Download links are in step 1 below.
+- **An AI app and account:** Codex, Claude Code, OpenCode or T3 Code with access to local projects and files. Download links are in step 1 below.
 - **A dedicated project folder:** the AI needs permission to read your inputs and save your records there.
 - **Internet access:** needed to download the skill, set up missing software and search for current jobs.
 - **Your resume, if you have one:** PDF or Word is useful; you can also start without one.
@@ -38,7 +38,9 @@ PDF viewing is required to inspect generated pages. If a Word document will be u
 
 **Allow for usage.** Tailoring documents, visually checking each page and preparing upload copies can use a substantial part of your AI plan's allowance. Limits and any API charges depend on your app, model and plan. Ask for **PDF only** when a Word file is not required to reduce the work. If you hit a limit, return to the same project after it resets.
 
-### 1. Open Codex or Claude Code
+<a name="1-open-codex-or-claude-code"></a>
+
+### 1. Open your AI app
 
 #### a. Install and sign in
 
@@ -48,6 +50,8 @@ Choose your computer, download the app and sign in:
 | --- | --- | --- |
 | Codex | [Download page](https://learn.chatgpt.com/docs/app) | [Download page](https://learn.chatgpt.com/docs/windows/windows-app#download-the-chatgpt-desktop-app) |
 | Claude Code | [Claude downloads](https://claude.com/download) | [Claude downloads](https://claude.com/download) |
+
+**Already using OpenCode or T3 Code?** Use your existing app. Select the job-search folder and an agent that can edit files and run local commands. In T3, also select and authenticate its underlying provider; T3 uses that provider's installed skill. Downloads: [OpenCode](https://opencode.ai/download), [T3 Code](https://github.com/pingdotgg/t3code/releases). You can use the same start message below.
 
 For Codex, install the ChatGPT desktop app and select **Codex**. For Claude, open its **Code** tab and choose **Local**.
 
@@ -118,6 +122,8 @@ During setup, the skill confirms your application email and whether it may read 
 
 **Also optional: Google Calendar.** If you want help adding interview events, connect **Google Calendar** through the same app menus now. The skill will verify your calendar choice and obtain permission before creating or changing events. This is separate from Gmail access.
 
+**OpenCode / T3:** use only connections available to the selected agent or provider. A Gmail connection in another desktop app does not automatically carry over. Skip this step if no supported connection is available; the AI can work from replies you paste.
+
 Sources: [Codex plugins](https://learn.chatgpt.com/docs/plugins), [Claude Code connectors](https://code.claude.com/docs/en/desktop#extend-claude-code). More detail: [Inbox workflow](skills/job-search/references/mail.md).
 
 ### 2. Add your resume before sending
@@ -180,6 +186,8 @@ Your answer stays linked to that employer and work period. If the session ends, 
 
 **Optional inbox access:** if you connected Gmail in step 1, the AI verifies that existing connection after confirming your application email and read permission. If you skipped it, you can connect later or continue without inbox access. [Connection steps](skills/job-search/references/mail.md).
 
+The interview stays brief: one useful question at a time, with a short explanation only when needed. At the first setup handoff, the AI gives you the exact way to return in **your app**, your saved-records location and the next action. It does not make you read instructions for every app.
+
 ### 5. Review the first useful result
 
 The AI can prepare useful drafts while the interview continues. Open the documents and check your experience, dates, qualifications and contact details.
@@ -221,8 +229,12 @@ Use your AI's message box after installation:
 | Codex / ChatGPT desktop | Type `@` and choose **job-search**; use `$` if your composer has that skill picker. |
 | Codex CLI / IDE | `$job-search` |
 | Claude Code | `/job-search` |
+| OpenCode | Send `Use job-search to continue my job search.` Use `/job-search` only if your version lists it. |
+| T3 Code | Type `$`, select **job-search** for the selected provider, then add your request. The `/` menu may list it too. |
 
 Add **Start my search** or **Continue my job search**, then send.
+
+**New chat or restart?** Keep going here if the AI has loaded the installed skill. A new chat is a fallback when the picker has not refreshed; a full app/provider restart is needed only if discovery still fails or your app requires it. Your saved interview stays in the same project. [App-specific details](docs/setup.md#new-chat-or-restart).
 
 If the skill is missing, say: **“Check whether job-search is installed in this project and help me load it.”**
 
@@ -240,6 +252,8 @@ Keep your **computer awake and desktop app running** for local searches. Find th
 - **Claude Code:** Code → Routines.
 
 To change it, say **“Pause my scheduled search”** or **“Move my daily search to 8 a.m.”**
+
+**OpenCode / T3:** use the saved search prompt manually unless a supported scheduler is separately verified. Installing the skill does not create a timer or transfer another app's schedule.
 
 [More about daily searches and CLI limits](docs/setup.md#your-weekday-morning-search).
 
@@ -267,7 +281,7 @@ Or install from your project terminal with Node.js 22.20+:
 npx skills@1.5.26 add toughdave/job-search --skill job-search --agent codex claude-code --copy -y
 ```
 
-Then summon the skill above. Opening the GitHub link alone does not install it.
+Use only the agent you need: `codex`, `claude-code` or `opencode`. For T3, choose the underlying provider, not `t3`. Then summon the skill above. Opening the GitHub link alone does not install it.
 
 </details>
 

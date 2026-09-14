@@ -229,3 +229,8 @@ All message/reply/answer/text file inputs are normal filesystem paths; prefer ab
 ## Optional inbox interview
 
 After the application email is confirmed, offer [mail setup](mail.md) through `mail-choice`/`decision`. Record consent or no/later before using account tools; verifying an installed plugin is not verifying the selected Gmail account. `plan.mail` shows the saved setup status separately from interview coverage. Connection delays do not block independent resume or search work.
+
+
+## First setup handoff
+
+After initial setup/interview reaches its first useful handoff, follow [return instructions](harnesses.md#first-setup-handoff). Give the person only their current app's summon action, saved project location and one next action. If topics remain deferred or a tool is blocked, describe that actual partial status rather than claiming all setup is finished. Keep this guidance in the private project so a restart or app change does not restart the interview. Do not repeat it after every answer.
