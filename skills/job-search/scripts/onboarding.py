@@ -315,7 +315,7 @@ def check_reply(value,project,reply,expected,outgoing_draft_file=None):
     flags=stage_review.unresolved(text,state,ws.checked_root(value),True)
     ws.require(not flags,'Reply contains unresolved evidence wording: '+json.dumps(flags,ensure_ascii=False)+'. Remove the broader claim; keep the specific supported experience. A disclaimer does not fix it.')
     narration=text.replace('’',"'")
-    ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply)\b",narration,re.I),
+    ws.require(not re.search(r"\b(?:check passed|here's my reply|here is my reply|sending (?:that |the )?exact reply|no review flags|delivering (?:the )?verbatim (?:result|reply)(?: now)?)\b",narration,re.I),
                'Remove internal validation narration. The entire reply must be candidate-facing text only.')
     candidate_text=text
     if outgoing_draft_file is not None:
@@ -327,7 +327,12 @@ def check_reply(value,project,reply,expected,outgoing_draft_file=None):
         matches=list(re.finditer(r'^'+re.escape(block)+r'(?=\n|$)',text,re.M))
         ws.require(len(matches)==1 and text.count(draft)==1 and len(re.findall(r'^```outgoing-draft\s*$',text,re.M))==1,
                    'Include the exact outgoing draft once, in one ```outgoing-draft fenced block; keep candidate questions outside it.')
-        match=matches[0];candidate_text=(text[:match.start()]+text[match.end():]).strip()
+        match=matches[0]
+        prefix=text[:match.start()].rstrip()
+        label=prefix.splitlines()[-1] if prefix else ''
+        ws.require(re.fullmatch(r'(?:\*\*)?Draft for [^\s\n?？:][^\n?？:]*:?(?:\*\*)?',label,re.I),
+                   'Put a short recipient label, such as Draft for the recruiter, not sent:, directly above the outgoing block.')
+        candidate_text=(text[:match.start()]+text[match.end():]).strip()
     summary=candidate_text
     if pending:
         question=pending[0]['question'].strip()
@@ -372,18 +377,45 @@ def record_statement(value, project, statement_id, text, expected):
     return {'statement':record,'revision':saved['revision'],'captured_characters':len(text),'capture_instruction':CAPTURE_INSTRUCTION}
 
 
+def application_action_reminders(state):
+    """List helper-generated reminders that still need a concrete application next step."""
+    reminders=[]
+    for app in state['applications']:
+        match=re.fullmatch(r'Reconcile candidate answer (\S+) and set the next step for this application before any new external action\.',app['next_action'])
+        if match:
+            answer=next((a for a in state['interviews'] if a['id']==match[1]),None)
+            reminders.append({'application_id':app['id'],'answer_id':match[1],
+                              'source_ids':answer['source_ids'] if answer else [],'next_action':app['next_action']})
+    return reminders
+
+
+def latest_capture(state):
+    positions={s['id']:i for i,s in enumerate(state['sources'])}
+    captures=[{'text':a['answer'],'source_id':sid} for a in state['interviews'] for sid in a['source_ids']]
+    captures += [{'text':s['text'],'source_id':sid} for s in state.get('statements',[]) for sid in s['source_ids']]
+    return max(captures,key=lambda c:positions[c['source_id']],default=None)
+
+
 def finish_reply(value,project,message_id,message,reply,expected,outgoing_draft_file=None,capture_source_id=None):
     """Persist the full received turn before checking its response, including format-only requests."""
     root=ws.checked_root(value);state=ws.load(root);check_project(state,project)
     ws.require(state['revision']==expected,'Revision conflict: reread before finishing this reply.')
-    ws.require(message.strip(),'The complete received message is required.')
+    ws.require(isinstance(message_id,str) and message_id.strip() and message.strip(),'A stable turn ID and the complete received message are required.')
+    existing=next((s for s in state.get('statements',[]) if s['id']==message_id),None)
+    if existing:ws.require(existing['text']==message,'Statement ID already used for different text; use a new message ID for a correction.')
     if capture_source_id is not None:
         captured=[a['answer'] for a in state['interviews'] if capture_source_id in a['source_ids']]
         captured += [s['text'] for s in state.get('statements',[]) if capture_source_id in s['source_ids']]
         ws.require(message in captured,'Capture source must contain this entire received message, not a summary.')
     else:
+        latest=latest_capture(state)
+        ws.require(existing or not latest or latest['text']!=message,
+                   'This text is already saved as '+(latest['source_id'] if latest else '')+'. Pass --capture-source-id to reuse that turn. If this is a different received turn with identical text, first record-statement with its new statement ID; do not merge separate turns.')
         result=record_statement(root,project,message_id,message,expected)
         capture_source_id=result['statement']['source_ids'][0];expected=result['revision']
+        state=ws.load(root)
+    reminders=[r for r in application_action_reminders(state) if capture_source_id in r['source_ids']]
+    ws.require(not reminders,'Replace the current answer\'s application next_action reminder with the concrete saved next step before finishing: '+json.dumps(reminders,ensure_ascii=False))
     result=check_reply(root,project,reply,expected,outgoing_draft_file)
     # The recipient sees an ordinary copyable block, not the internal routing label.
     if outgoing_draft_file is not None:result['send_verbatim']=result['send_verbatim'].replace('```outgoing-draft\n','```\n',1)
@@ -445,6 +477,7 @@ def plan_state(state,value,project):
         'active_track':active,'resume_status':ob['resume']['status'],'topics':rows,
         'pending_application_questions':[q for q in ob['questions'] if q.get('application_id') and q['id'] not in answers and q['id'] not in replaced_questions],
         'application_answers':[{'application_id':q['application_id'],'question_id':q['id'],'answer_id':answers[q['id']]['id']} for q in ob['questions'] if q.get('application_id') and q['id'] in answers],
+        'application_action_reminders':application_action_reminders(state),
         'work_history':history,
         'linkedin':linkedin.plan(state),
         'document_formats':formatting.plan(state),

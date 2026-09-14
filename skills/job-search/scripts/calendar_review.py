@@ -16,8 +16,12 @@ def scan(text):
         # Lowercase short forms can be ordinary words: "exam sat", "we wed".
         # Full weekday names and capitalized abbreviations remain recognized.
         if match['weekday'] in ('sat','wed','sun','mon'):continue
+        # Uppercase SAT can name the exam. Require a score immediately after
+        # its date; nearby unrelated exam wording must not hide a real weekday.
+        sat_exam=match['weekday']=='SAT' and bool(re.match(r'\s*[,;:\-]?\s*score\s*:?\s*\d{3,4}\b',text[match.end():],re.I))
         item={'line':text.count('\n',0,match.start())+1,'text':match.group()}
         if not match['year']:
+            if sat_exam:continue
             flags.append({**item,'kind':'calendar_year_missing','severity':'review','message':'Confirm the year from saved context before relying on the weekday; no year was assumed.'})
             continue
         month=(match['month'] or match['month_last'])[:3].lower()
@@ -25,6 +29,7 @@ def scan(text):
         try:actual=date(int(match['year']),month,int(match['day'] or match['day_first']))
         except ValueError:
             flags.append({**item,'kind':'calendar_invalid_date','severity':'error','message':'This calendar date does not exist.'});continue
+        if sat_exam:continue
         expected=DAYS[actual.weekday()]
         if match['weekday'][:3].lower()!=expected[:3].lower():
             flags.append({**item,'kind':'calendar_weekday_mismatch','severity':'error','expected_weekday':expected,'date':actual.isoformat(),'message':'Weekday/date mismatch: '+actual.isoformat()+' is '+expected+'. Correct the active text; a disclaimer does not fix it.'})
