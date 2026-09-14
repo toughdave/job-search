@@ -101,6 +101,25 @@ Claude handles permission decisions with automatic safety checks. Some actions c
 
 These screenshots show the author's desktop apps; labels can vary by version. If the AI requests access to a particular records folder or approval to install the skill, review that specific request. [More about permissions](docs/setup.md#allow-the-ai-to-read-and-save-files).
 
+#### f. Optional: connect Gmail before the first message
+
+Connect Gmail now if you want the AI to help track job-related replies. Doing this **before the installation message** avoids a sign-in interruption during the interview.
+
+| Your app | Where to connect Gmail |
+| --- | --- |
+| Codex desktop | Open **Plugins**, find **Gmail**, install/enable it if needed, then complete its connection flow. |
+| Claude Code desktop | Open **+ → Connectors** or **Settings → Connectors**, choose **Gmail / Google Workspace**, and connect it. |
+
+Sign in to the Google account you plan to use for applications. If that account is already connected, leave it in place. Complete any sign-in or app-requested session restart before continuing.
+
+**You can skip this.** Gmail is optional for installing the skill, preparing resumes and finding jobs. If the connector is unavailable or you do not want inbox access, continue to step 2.
+
+During setup, the skill confirms your application email and whether it may read job-related replies, then checks the existing connection. It asks you to connect or switch accounts only if needed. App sign-in alone does not authorize the skill to send email or change your calendar.
+
+**Also optional: Google Calendar.** If you want help adding interview events, connect **Google Calendar** through the same app menus now. The skill will verify your calendar choice and obtain permission before creating or changing events. This is separate from Gmail access.
+
+Sources: [Codex plugins](https://learn.chatgpt.com/docs/plugins), [Claude Code connectors](https://code.claude.com/docs/en/desktop#extend-claude-code). More detail: [Inbox workflow](skills/job-search/references/mail.md).
+
 ### 2. Add your resume before sending
 
 Choose **one** way to begin:
@@ -159,7 +178,7 @@ Your answer stays linked to that employer and work period. If the session ends, 
 
 **Daily search:** it also offers a weekday morning routine. You can accept it, change the time or keep searches manual.
 
-**Optional inbox connection:** after confirming your application email, the AI offers to connect Gmail for job-related replies. You sign in to the intended account; the AI checks the connected address before reading. You can choose no or later. [Connection steps](skills/job-search/references/mail.md).
+**Optional inbox access:** if you connected Gmail in step 1, the AI verifies that existing connection after confirming your application email and read permission. If you skipped it, you can connect later or continue without inbox access. [Connection steps](skills/job-search/references/mail.md).
 
 ### 5. Review the first useful result
 

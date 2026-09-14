@@ -4,6 +4,12 @@ Email access is optional. Offer it after confirming the application email, befor
 
 If yes, use the application address as the default. If the person wants another primary inbox, ask for that mailbox and save the explicit choice. Do not silently equate aliases, remove dots or plus tags, or infer that a custom-domain mailbox uses Gmail. Keep the confirmed application address on resumes unless the person changes it. This setup handles one selected primary inbox per project; do not combine other accounts without a separate explicit scope decision.
 
+## Reuse setup done in the app
+
+The first-time guide offers optional Gmail connection in step 1, before the skill installation prompt. The person may therefore arrive with a working connection. After confirming their application email and job-mail read permission, discover the current host's tools and verify the existing authenticated account and bounded read. Do not make them reinstall, disconnect/reconnect or answer a connection question when that verification succeeds. Only guide a connection or account switch when tools, identity or access checks show it is necessary.
+
+Connecting the app beforehand is not itself this project's read consent, identity verification or permission to send mail. Save the one project-specific mail choice as usual. If they skipped app setup or choose no/later, continue the rest of the interview without requiring Gmail; use the connection recovery below only when they choose inbox help.
+
 ## Connection interview and verification
 
 1. Save the confirmed application email as a current profile fact containing exactly one address. Save the permission response with `save-answer`, or `record-statement` when volunteered. The `choose` helper makes `mail-choice` coverage derive from this saved decision, so it is not asked again. An application-email change reopens the decision. Offer a bounded job-mail lookback, initially 14 days, and save the agreed scope. Reading relevant replies is separate from sending, labels, archive, deletion, draft creation inside Gmail or calendar changes.
@@ -65,4 +71,4 @@ Only `ready_for_read: true` permits continuing this mail workflow. Without a fre
 
 Before each mailbox session or scheduled run, check current connector identity and access again; never rely on a previous host or login. Use the saved lookback, watermark plus overlap, thread IDs and pagination for relevant mail. Store coverage per chosen mailbox. If permission is revoked or the tool fails mid-run, record blocked/partial coverage and retain the cursor. If mail is required, the run is incomplete; independent job discovery can still proceed. Never substitute “no new replies” for inaccessible mail.
 
-Google Calendar is a separate optional connection. Offer it when interview scheduling is useful, verify its account/calendar ID independently and record its own consent; Gmail access does not authorize creating events. Sending email or changing a calendar always requires the applicable action authorization. Local reply drafts need no connected mailbox.
+Google Calendar is a separate optional connection. The person may connect it during app setup too; reuse and verify that existing connection instead of prompting another sign-in. Offer it when interview scheduling is useful, verify its account/calendar ID independently and record its own consent; Gmail access does not authorize creating events. Sending email or changing a calendar always requires the applicable action authorization. Local reply drafts need no connected mailbox.

@@ -84,6 +84,27 @@ The skill normally creates a private `records` subfolder in your dedicated proje
 
 **Before continuing:** the correct project is selected, file editing is allowed, and you are ready to approve the installation if asked. The AI handles the remaining folders and files. On later visits, check the selected project and permission mode again if saving stops working.
 
+#### e. Optional: connect Gmail before the first message
+
+Connect Gmail now if you want the AI to help track job-related replies. Doing this **before the installation message** avoids a sign-in interruption during the interview.
+
+| Your app | Where to connect Gmail |
+| --- | --- |
+| Codex desktop | Open **Plugins**, find **Gmail**, install/enable it if needed, then complete its connection flow. |
+| Claude Code desktop | Open **+ → Connectors** or **Settings → Connectors**, choose **Gmail / Google Workspace**, and connect it. |
+
+Sign in to the Google account you plan to use for applications. If that account is already connected, leave it in place. Complete any sign-in or app-requested session restart before continuing.
+
+**You can skip this.** Gmail is optional for installing the skill, preparing resumes and finding jobs. If the connector is unavailable or you do not want inbox access, continue to step 2.
+
+During setup, the skill confirms your application email and whether it may read job-related replies, then checks the existing connection. It asks you to connect or switch accounts only if needed. App sign-in alone does not authorize the skill to send email or change your calendar.
+
+**Also optional: Google Calendar.** If you want help adding interview events, connect **Google Calendar** through the same app menus now. The skill will verify your calendar choice and obtain permission before creating or changing events. This is separate from Gmail access.
+
+Sources: [Codex plugins](https://learn.chatgpt.com/docs/plugins), [Claude Code connectors](https://code.claude.com/docs/en/desktop#extend-claude-code). More detail: [Inbox workflow](../skills/job-search/references/mail.md).
+
+**Nothing else needs manual installation before the start message.** The AI checks Python and document tools during setup. It checks browser tools when online work needs them. If your resume is only in Google Drive, downloading a copy to attach is enough; a Drive connection is optional. Employer-portal sign-in happens when you apply, and scheduled searches are configured after the interview establishes your targets and timing.
+
 ### 2. Add your resume before sending
 
 Use **one** method:
@@ -248,4 +269,4 @@ Official instructions checked for this guide: [Codex skills](https://learn.chatg
 
 ## Connect your job-search inbox
 
-After confirming your application email, the AI asks whether you want inbox help. If you agree, it guides you to Gmail in Codex Plugins or Claude Code Connectors. Sign in to the account you want to use. The AI checks the account address and a small job-related search before calling it ready. A different connected account stays blocked until you resolve it. You can decline or continue without email; Calendar is offered separately when useful. [Full connection workflow](../skills/job-search/references/mail.md).
+After confirming your application email, the AI asks whether you want inbox help. If you connected Gmail in step 1, it verifies that existing connection without asking you to connect again. Otherwise, it guides you to Gmail in Codex Plugins or Claude Code Connectors when you choose to add inbox access. The AI checks the account address and a small job-related search before calling it ready. A different connected account stays blocked until you resolve it. You can decline or continue without email; Calendar is offered separately when useful. [Full connection workflow](../skills/job-search/references/mail.md).

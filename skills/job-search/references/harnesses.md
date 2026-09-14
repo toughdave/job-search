@@ -18,7 +18,7 @@ During onboarding, offer the optional weekday morning search after target work a
 
 ## Gmail and calendar
 
-Follow the [mail connection interview and account checks](mail.md). They are optional. Use the candidate's own chosen connector and account. Connect through the host UI/approved tools; do not ask for passwords or copy another person's credentials. Check the requested scope with a bounded read. Preserve the distinction between drafting a reply/event and sending/creating it. Store consent and scope, never tokens. If mail is unavailable, process candidate-supplied messages as explicitly candidate-supplied evidence.
+Follow the [mail connection interview and account checks](mail.md). They are optional and may already be connected before skill installation. Verify and reuse a working connection; request setup only when needed. Use the candidate's own chosen connector and account. Connect through the host UI/approved tools; do not ask for passwords or copy another person's credentials. Check the requested scope with a bounded read. Preserve the distinction between drafting a reply/event and sending/creating it. Store consent and scope, never tokens. If mail is unavailable, process candidate-supplied messages as explicitly candidate-supplied evidence.
 
 ## Other agents
 
