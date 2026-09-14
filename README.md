@@ -259,6 +259,8 @@ To change it, say **“Pause my scheduled search”** or **“Move my daily sear
 
 ## If something stops you
 
+If the AI stops after a progress update without giving you a question or next action, send **`Continue`** in the same conversation. It should resume from your saved progress.
+
 Tell the AI what happened. For missing records, provide the private location it gave you and say **“Resume my existing search here; do not start over.”** [More help](docs/setup.md#if-something-stops-you).
 
 If you renamed or moved your project, say **“I moved this job-search project. Reconnect my existing records here.”** The AI confirms the new location, preserves your answers and checks any saved routine before resuming it.

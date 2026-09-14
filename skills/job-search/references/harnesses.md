@@ -12,7 +12,7 @@ Project skills use `.claude/skills`; invoke `/job-search` or a matching request.
 
 ## OpenCode
 
-Use a complete project skill in `.opencode/skills/job-search`; compatible `.agents/skills` and `.claude/skills` are also discovered. Prefer the existing valid copy. The portable composer message is `Use job-search to continue my job search.` Verify native loading through the `skill` tool. Some versions expose skills in a slash menu; recommend `/job-search` only when actually listed. Do not invent a custom slash command or change global configuration to make it appear.
+The pinned skills installer uses `.agents/skills/job-search` for OpenCode. Manual copies can instead use `.opencode/skills/job-search`; compatible `.claude/skills` is also discovered. No `opencode.json` change is needed for these standard folders. Prefer the existing valid copy rather than adding duplicates. The portable composer message is `Use job-search to continue my job search.` Verify native loading through the `skill` tool. Some versions expose skills in a slash menu; recommend `/job-search` only when actually listed. Do not invent a custom slash command or change global configuration to make it appear.
 
 ## T3 Code and wrappers
 

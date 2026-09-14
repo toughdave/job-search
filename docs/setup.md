@@ -217,7 +217,7 @@ Sources: [Codex loading](https://learn.chatgpt.com/docs/build-skills), [Claude l
 
 ### Other apps and available tools
 
-OpenCode discovers project skills in `.opencode/skills` and compatible `.agents/skills` or `.claude/skills` folders. T3 loads skills through the provider selected for that project. Changing provider or remote environment can change which skills, files, models and connections are available; reopen the same saved project and let the AI verify them.
+The pinned skills installer places OpenCode skills in `.agents/skills/job-search`. OpenCode also discovers manual copies in `.opencode/skills` or `.claude/skills`; no `opencode.json` change is needed for these standard folders. T3 loads skills through the provider selected for that project. Changing provider or remote environment can change which skills, files, models and connections are available; reopen the same saved project and let the AI verify them.
 
 The core interview and file workflow can run where those capabilities exist. Browser control, page-image viewing, Gmail and scheduling must be checked separately. The current routine helper verifies native schedules only for Codex desktop and Claude desktop; OpenCode and T3 use the saved prompt manually unless a separately supported scheduling integration is verified. Do not treat an installed package as proof that every stage works in every wrapper.
 
@@ -262,6 +262,7 @@ Official scheduling guidance: [Codex / ChatGPT desktop](https://learn.chatgpt.co
 | What happened | What to do |
 | --- | --- |
 | “I cannot read your resume.” | Attach it again if supported, or supply its actual file location. If still unreadable, paste the resume text when asked. |
+| The AI stops after a progress update with no question or next action. | Send `Continue` in the same conversation. It should resume from saved progress. |
 | “The skill is not available.” | Send `Check whether job-search is installed in this project and help me load it.` Follow a restart instruction only if needed. |
 | The app asks for permission or a missing tool. | Review the request and allow what you want it to do. If you cannot proceed, tell the AI what the message says. |
 | It asks questions you already answered. | Say `Read my saved job-search records first.` Supply the saved location if this is a different conversation. |
