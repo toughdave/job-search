@@ -194,7 +194,7 @@ The AI can prepare useful drafts while the interview continues. Open the documen
 
 **Before uploading a resume or CV to an application form, the AI must visually inspect every page of the actual file.** It checks clipping, alignment, spacing, page breaks and readability, fixes problems, and reviews the corrected version again. A PDF generated separately from a Word file does not verify the Word file's layout. If visual review cannot be completed, the upload waits.
 
-**Before submission, the AI checks the saved application form.** It verifies work history, education, contact details, answers and attachments, including relevant optional fields it can truthfully complete. Missing entries must be fixed or explained, and changes trigger another check. You still authorize the final submission. [How the completion check works](skills/job-search/references/form-completeness.md).
+**Before submission, the AI checks the saved application form.** It verifies work history, education, contact details, answers and attachments, including relevant optional fields it can truthfully complete. Missing entries must be fixed or explained, and changes trigger another check. New information is saved; affected applications return to preparation until their forms are checked again. You still authorize the final submission. [How the completion check works](skills/job-search/references/form-completeness.md).
 
 Give corrections directly in the conversation, for example:
 

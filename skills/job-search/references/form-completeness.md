@@ -50,4 +50,18 @@ python S/scripts/form_review.py check --workspace W --application APP_ID
 
 New/changed `ready` applications are guarded at workspace commit. Candidate profile, employer inventory, application answers and upload-reference changes make a saved review stale. Move an affected ready application back to `preparing` in the same update, then inspect and save a fresh review. Legacy ready entries remain readable for migration, but require this check before being recommended or submitted again. Offline document readiness uses the `materials_ready_at` milestone or a preparing-stage next action; it is not proof of a completed portal form. Recording an actual employer receipt remains possible even when the person submitted independently without this review.
 
+## Save new information while applications await approval
+
+Profile facts, preferences and employer periods can affect form answers, even when a new detail first appears unrelated. The context check deliberately remains conservative. A normal commit now names every application with a stale review and explains recovery; never discard the candidate's new information or ask them to repeat it to keep applications labelled ready.
+
+When mapping new information or correcting an application, prepare the full intended state update in `scratch/update.json`, preserving existing sources, records, workspace identity, revision and history. Use the current revision from `workspace.py show`. If reviewed applications are ready, prefer this helper to commit the update and clear their stale readiness together:
+
+```sh
+python S/scripts/form_review.py commit-update --workspace W --draft scratch/update.json --expected-revision N
+```
+
+It saves the intended edits and moves only **existing ready applications with unchanged review pointers that have become stale** to `preparing`. It retains their review files and sources, adds a reinspection next action, and returns `demoted_applications` and the new revision. Session-only changes and other still-current applications keep their status. Submitted applications are not moved. An invalid draft, changed/stale revision, tampered evidence or an unchecked new ready application is still refused atomically; the helper does not bypass the ordinary workspace checks or issue a PASS.
+
+Read back the saved changes and affected applications. Continue useful interview/search work; re-inspect each affected portal and save a fresh review before restoring readiness or recommending submission. No new candidate approval is needed just to record their supplied facts and clear stale readiness. Final submission authorization remains separate. You can instead set affected applications to `preparing` yourself in the same draft and use the usual guarded workspace commit. Do not restart the interview or overwrite previous review history.
+
 The helper validates recorded evidence and consistency. It cannot observe omitted browser fields, judge the truth of arbitrary prose or prove that the AI inspected the browser. The live review and independent inventory are mandatory alongside the helper.

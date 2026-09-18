@@ -15,6 +15,10 @@ EXCLUDED_APP_FIELDS = {'form_review', 'stage', 'outcome', 'outcome_source_ids',
                        'milestones', 'submission'}
 
 
+class StaleFormReview(ws.WorkspaceError):
+    """An otherwise valid saved review no longer matches its candidate context."""
+
+
 def application(state, aid):
     return ws.indexed(state['applications'], 'applications').get(aid)
 
@@ -48,9 +52,6 @@ def validate_record(record, state, root, app, current=True):
                datetime.fromisoformat(ws.now()), 'Review cannot be in the future.')
     text(record.get('review_url'), 'review_url'); ws.canonical(record['review_url'])
     text(record.get('context_sha256'), 'context_sha256')
-    if current:
-        ws.require(record['context_sha256'] == context_hash(state, app),
-                   'Form review is stale: recheck the saved form after evidence/application changes.')
     sources = ws.indexed(state['sources'], 'sources')
     ws.refs(record.get('inventory_source_ids'), sources, 'Independent expected inventory')
     evidence = record.get('evidence_files')
@@ -114,6 +115,9 @@ def validate_record(record, state, root, app, current=True):
     for name in CHECKS:
         if checks[name]['status'] == 'verified':
             ws.require(any(f['section'] == name for f in fields), name + ': missing field observations.')
+    if current and record['context_sha256'] != context_hash(state, app):
+        raise StaleFormReview('Application ' + app['id'] + ': form review is stale. '
+            'Keep it preparing until the saved form is re-inspected and a fresh review is saved.')
     return record
 
 
@@ -130,13 +134,50 @@ def check_state(state, root, app):
 
 def guard_commit(old, new, root):
     old_apps = ws.indexed(old['applications'], 'applications')
+    stale = []
     for app in new['applications']:
         previous = old_apps.get(app['id'], {})
         # Old unreviewed records stay readable. New/changed readiness must pass.
         needs_ready = app['stage'] == 'ready' and (app != previous or
             (app.get('form_review') and context_hash(old, previous) != context_hash(new, app)))
         if needs_ready or app.get('form_review') != previous.get('form_review'):
-            check_state(new, root, app)
+            try:
+                check_state(new, root, app)
+            except StaleFormReview:
+                stale.append(app['id'])
+    if stale:
+        raise StaleFormReview('Applications ' + ', '.join(stale) + ' have stale form reviews. '
+            'Keep your intended edits; move affected ready applications to preparing in the same draft, '
+            'then re-inspect their saved forms and save fresh reviews. '
+            'Use form_review.py commit-update --workspace W --draft scratch/update.json '
+            '--expected-revision N to save the update and move only existing ready applications '
+            'with stale reviews to preparing. A changed review pointer itself must be fresh.')
+
+
+def commit_update(root, draft, expected):
+    """Apply an intended state update and explicitly invalidate affected readiness."""
+    old = ws.load(root)
+    ws.require(old['revision'] == expected, 'Revision conflict: reread current records and merge intended edits.')
+    ws.require(draft.startswith('scratch/'), 'Prepare the updated state JSON in workspace scratch.')
+    state = json.loads(ws.inside(root, draft).read_text(encoding='utf-8-sig'))
+    ws.validate(state, root)
+    ws.require(state['revision'] == expected, 'Draft revision must match the state you read.')
+    previous = ws.indexed(old['applications'], 'applications'); demoted = []
+    for app in state['applications']:
+        prior = previous.get(app['id'], {})
+        if (app['stage'] == prior.get('stage') == 'ready' and app.get('form_review') and
+                app['form_review'] == prior.get('form_review')):
+            try:
+                check_state(state, root, app)
+            except StaleFormReview:
+                app['stage'] = 'preparing'
+                app['next_action'] = ('Re-inspect the saved form and save a fresh completeness review. '
+                                      'Then: ' + app['next_action'])
+                demoted.append(app['id'])
+    summary = 'Saved intended update; stale form reviews moved to preparing: ' + (', '.join(demoted) or 'none')
+    saved = ws.commit(root, state, expected, summary)
+    return {'status': 'UPDATED', 'revision': saved['revision'], 'demoted_applications': demoted,
+            'next_action': 'Re-inspect these applications and save fresh reviews before readiness.' if demoted else 'Continue the saved next action.'}
 
 
 def save(root, aid, draft, expected):
@@ -164,20 +205,27 @@ def save(root, aid, draft, expected):
 def main():
     ws.configure_output()
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('command', choices=('context', 'save', 'check'))
-    p.add_argument('--workspace', required=True); p.add_argument('--application', required=True)
+    p.add_argument('command', choices=('context', 'save', 'check', 'commit-update'))
+    p.add_argument('--workspace', required=True); p.add_argument('--application')
     p.add_argument('--draft'); p.add_argument('--expected-revision', type=int)
     a = p.parse_args()
     try:
-        root = ws.checked_root(a.workspace); state = ws.load(root); app = application(state, a.application)
-        ws.require(app is not None, 'Unknown application.')
+        root = ws.checked_root(a.workspace); state = ws.load(root)
+        if a.command == 'commit-update':
+            ws.require(a.application is None, 'commit-update applies a state draft; omit --application.')
+            ws.require(a.draft is not None and a.expected_revision is not None, 'commit-update needs --draft and --expected-revision.')
+            result = commit_update(root, a.draft, a.expected_revision)
+        else:
+            ws.require(a.application is not None, a.command + ' needs --application.')
+            app = application(state, a.application)
+            ws.require(app is not None, 'Unknown application.')
         if a.command == 'context':
             result = {'workspace_id': state['workspace_id'], 'application': app['id'],
                       'context_sha256': context_hash(state, app), 'revision': state['revision']}
         elif a.command == 'save':
             ws.require(a.draft is not None and a.expected_revision is not None, 'save needs --draft and --expected-revision.')
             result = save(root, a.application, a.draft, a.expected_revision)
-        else:
+        elif a.command == 'check':
             check_state(state, root, app)
             result = {'status': 'PASS', 'application': app['id'], 'review': app['form_review']}
         result['limitation'] = 'Checks retained evidence, not the browser itself. Inspect the current saved form; final submission authorization is separate.'
