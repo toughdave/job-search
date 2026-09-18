@@ -178,6 +178,8 @@ If it cannot search the web, it may ask for a job posting. If a required fact or
 
 **Visual review happens before upload.** The AI opens every page of the actual resume/CV file it will attach, checks spacing, alignment, clipping, page breaks and readability, and corrects problems. It inspects corrected versions again and records the reviewed file's hash. For a Word upload, it renders that exact DOCX through an available office converter; a separately generated PDF does not verify the DOCX. If it cannot view the required file, it keeps the draft and pauses the upload. This applies to manual applications and scheduled job hunting alike.
 
+**Before submission, the AI checks the saved application form.** It verifies work history, education, contact details, answers and attachments, including relevant optional fields it can truthfully complete. Missing entries must be fixed or explained, and changes trigger another check. You still authorize the final submission. [How the completion check works](../skills/job-search/references/form-completeness.md).
+
 **That is the first-time process. The sections below are for later visits or optional help.**
 
 <a name="already-installed"></a>

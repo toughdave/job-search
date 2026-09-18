@@ -10,6 +10,10 @@ For a constrained degree selector, use the nearest supported level only when equ
 
 Follow [writing](writing.md#cover-letter) for every available letter route, including supporting documents. Verify the actual resume, letter and parsed fields at final review. Failed controls require the one retry and disclosure described there.
 
+## Before recommending submission
+
+Run the [saved-form completion checks](form-completeness.md) for every manual or scheduled application. Compare the saved form against the independent evidence-bank inventory, including work history, education and supported optional fields. Retain and validate the private review with `form_review.py`; a missing, failed or stale review blocks readiness. An enabled Submit button or successful resume upload does not establish completeness. Recheck after edits or session recovery, and keep final submission authorization separate.
+
 ## Clean upload files
 
 Keep internal versioned originals. After visually reviewing the exact source file, run `scripts/uploads.py` to create a byte-identical upload copy; opening `--help` is not this operation. This applies when preparing files offline for someone who asks for “ready to upload”, as well as during portal entry. Do not upload or present an internal `resume-v003.pdf` as the ready upload file.
