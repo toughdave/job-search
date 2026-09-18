@@ -64,4 +64,6 @@ It saves the intended edits and moves only **existing ready applications with un
 
 Read back the saved changes and affected applications. Continue useful interview/search work; re-inspect each affected portal and save a fresh review before restoring readiness or recommending submission. No new candidate approval is needed just to record their supplied facts and clear stale readiness. Final submission authorization remains separate. You can instead set affected applications to `preparing` yourself in the same draft and use the usual guarded workspace commit. Do not restart the interview or overwrite previous review history.
 
+When restoring `ready` after a fresh passing review, replace the old reinspection `next_action` with the actual next step, such as awaiting the candidate's final submission approval. Do not leave or repeatedly prepend the completed “Re-inspect … Then:” instruction.
+
 The helper validates recorded evidence and consistency. It cannot observe omitted browser fields, judge the truth of arbitrary prose or prove that the AI inspected the browser. The live review and independent inventory are mandatory alongside the helper.
